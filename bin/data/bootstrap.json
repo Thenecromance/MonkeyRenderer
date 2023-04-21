@@ -1,0 +1,19 @@
+[
+  {
+    "name": "wall.jpg",
+    "source": {
+      "type": "jpg",
+      "url": "https://learnopengl-cn.github.io/img/01/06/wall.jpg",
+      "user_agent": ""
+    }
+  },
+  {
+    "name": "test.jpg",
+    "source": {
+      "type": "jpg",
+      "url": "https://pic3.zhimg.com/v2-c6ae9c3aff36b9b221258f6a90577902_r.jpg",
+      "revision": "0.9.9.8",
+      "user_agent": ""
+    }
+  }
+]

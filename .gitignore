@@ -15,7 +15,7 @@
 /deps/taskflow/
 /deps/.bootstrap.json
 bin/logs
-TMake
+/TMake/
 #disable build
 build
 .vscode
