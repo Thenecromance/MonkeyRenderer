@@ -1,0 +1,74 @@
+[
+  {
+    "name": "stb",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/nothings/stb.git",
+      "revision": "c9064e317699d2e495f36ba4f9ac037e88ee371a"
+    }
+  },
+  {
+    "name": "glm",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/g-truc/glm.git",
+      "revision": "0.9.9.8"
+    }
+  },
+  {
+    "name": "glfw",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/glfw/glfw.git",
+      "revision": "3.3.4"
+    }
+  },
+  {
+    "name": "imgui",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/ocornut/imgui.git",
+      "revision": "v1.89.4"
+    }
+  },
+  {
+    "name": "flecs",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/SanderMertens/flecs.git",
+      "revision": "v3.1.2"
+    }
+  },
+  {
+    "name": "crossguid",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/graeme-hill/crossguid.git",
+      "revision": "ca1bf4b810e2d188d04cb6286f957008ee1b7681"
+    }
+  },
+  {
+    "name": "taskflow",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/taskflow/taskflow.git",
+      "revision": "6633a0919065f27b6697a8fb51ed36fbda8d384a"
+    }
+  },
+  {
+    "name": "assimp",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/assimp/assimp.git",
+      "revision": "a9f82dbe0b8a658003f93c7b5108ee4521458a18"
+    }
+  },
+  {
+    "name": "spdlog",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/gabime/spdlog.git",
+      "revision": "0ca574ae168820da0268b3ec7607ca7b33024d05"
+    }
+  }
+]

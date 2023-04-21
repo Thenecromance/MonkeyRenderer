@@ -1,0 +1,10 @@
+[
+  {
+    "ignore": false,
+    "path": "deps"
+  },
+  {
+    "ignore": false,
+    "path": "bin/data"
+  }
+]
