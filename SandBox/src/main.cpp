@@ -289,10 +289,10 @@ void LightTest(world &ecs) {
   }
 }
 void ShaderObject(world &ecs) {
-/*  auto e = ecs.entity("ShaderTest")
+  auto e = ecs.entity("ShaderTest")
                .set<ShaderFile>({"Shaders\\LightShader\\Light.vert",
                                  "Shaders\\LightShader\\Light.frag"});
-  std::cout << e.get<Program>()->handle << std::endl;*/
+  std::cout << e.get<Program>()->handle << std::endl;
 }
 int main() {
   Core::GetInstance()->Initialize(196, 8);
@@ -315,7 +315,7 @@ int main() {
       .Import<AntiAliasingConfigModule>();
   
   CreateCamera(Core::GetInstance()->GetWorld());
-
+  ShaderObject(Core::GetInstance()->GetWorld());
   while (Core::GetInstance()->OnUpdate())
     ;
 

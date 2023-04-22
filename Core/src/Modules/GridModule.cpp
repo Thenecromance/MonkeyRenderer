@@ -23,17 +23,13 @@ void OnUpdateGridRender(const Component::GridComponent& Comp) {
   NONE_ZERO_CHECK(Comp.handle);
   glEnable(GL_BLEND);
 
+  glBindVertexArray(Comp.vao);
   glUseProgram(Comp.handle);
-  glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, 6, 1, 0); //API: ERROR HIGH 1282: GL_INVALID_OPERATION error generated. Array object is not active.
-  
+  glDrawArraysInstancedBaseInstance(
+      GL_TRIANGLES, 0, 6, 1,
+      0);
+
   glDisable(GL_BLEND);
-}
-
-void InitializeGrid(flecs::iter& it, size_t i, Component::GridComponent& grid) {
-  /*grid.handle = ProgramLoader::GetInstance()->LoadAndLink(
-      {}, "GridProgram");
-
-  Logger::get<GridModule>()->info("GridProgram {} Loaded", grid.handle);*/
 }
 
 void UnLoadGrid(flecs::iter& it, size_t i, Component::GridComponent& grid) {
@@ -60,10 +56,11 @@ GridModule::GridModule(world& ecs) {
   auto grid_handle =
       ecs.entity("gridProgram")
           .set<ShaderFile>({"Shaders/Grid/grid.vs", "Shaders/Grid/grid.fs"});
+  Handle vao;
+  glCreateVertexArrays(1, &vao);
 
-  ecs.entity("Grid").set<Component::GridComponent>({
-      grid_handle.get<Program>()->handle
-  });
+  ecs.entity("Grid").set<Component::GridComponent>(
+      {grid_handle.get<Program>()->handle, vao});
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   Logger::get<GridModule>()->info("GridModule Loaded");
 }
