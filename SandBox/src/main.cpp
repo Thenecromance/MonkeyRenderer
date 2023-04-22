@@ -186,30 +186,22 @@ void PostProcessTest(world &ecs) {
       //      "data\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf",
       "PPrubberDuck");
 #pragma endregion.
-  auto post_handle = ProgramLoader::GetInstance()->LoadAndLink(
-      {
-          "Shaders\\PostProcess\\Basic.vert",
-          "Shaders\\PostProcess\\Blur.frag",
-      },
-      "screen_shader");
-  auto Basic_handle = ProgramLoader::GetInstance()->LoadAndLink(
-      {
-          "Shaders\\PostProcess\\Basic.vert",
-          "Shaders\\PostProcess\\Basic.frag",
-      },
-      "screen_shader");
-  auto Grayscale_handle = ProgramLoader::GetInstance()->LoadAndLink(
-      {
-          "Shaders\\PostProcess\\Basic.vert",
-          "Shaders\\PostProcess\\Grayscale.frag",
-      },
-      "screen_shader");
-  auto Inversion_handle = ProgramLoader::GetInstance()->LoadAndLink(
-      {
-          "Shaders\\PostProcess\\Basic.vert",
-          "Shaders\\PostProcess\\Inversion.frag",
-      },
-      "screen_shader");
+
+  auto blur = ecs.entity("blur").set<ShaderFiles>(
+      {"Shaders\\PostProcess\\Basic.vert", "Shaders\\PostProcess\\Blur.frag"});
+  auto none_effect =
+      ecs.entity("none_effect")
+          .set<ShaderFiles>({"Shaders\\PostProcess\\Basic.vert",
+                             "Shaders\\PostProcess\\Basic.frag"});
+  auto grayscale =
+      ecs.entity("grayscale")
+          .set<ShaderFiles>({"Shaders\\PostProcess\\Basic.vert",
+                             "Shaders\\PostProcess\\Grayscale.frag"});
+  auto inversion =
+      ecs.entity("inversion")
+          .set<ShaderFiles>({"Shaders\\PostProcess\\Basic.vert",
+                             "Shaders\\PostProcess\\Inversion.frag"});
+
   GLuint modelMatrices;
   if (uid_duck != 0) {
     glCreateBuffers(1, &modelMatrices);
@@ -229,10 +221,11 @@ void PostProcessTest(world &ecs) {
                  ModelLoader::GetInstance()->GetIndicesCount(uid_duck))})
         .set<Component::Texture>({.hHandle = texture_handle})
         .set<Component::Position>({{1.0f, 1.0f, 1.0f}})
-        .set<PostProcess>(
-            {.backupHandles = {post_handle, Basic_handle, Grayscale_handle,
-                               Inversion_handle},
-             .handle = post_handle});
+        .set<PostProcess>({.backupHandles = {blur.get<Program>()->handle,
+                                             none_effect.get<Program>()->handle,
+                                             grayscale.get<Program>()->handle,
+                                             inversion.get<Program>()->handle},
+                           .handle = blur.get<Program>()->handle});
   }
 }
 void LightTest(world &ecs) {
@@ -292,7 +285,6 @@ void ShaderObject(world &ecs) {
   auto e = ecs.entity("ShaderTest")
                .set<ShaderFile>({"Shaders\\LightShader\\Light.vert",
                                  "Shaders\\LightShader\\Light.frag"});
-  std::cout << e.get<Program>()->handle << std::endl;
 }
 int main() {
   Core::GetInstance()->Initialize(196, 8);
@@ -313,9 +305,10 @@ int main() {
       .Import<Module::GridModule>()
       .Import<Module::ImGuiRenderModule>()
       .Import<AntiAliasingConfigModule>();
-  
+
   CreateCamera(Core::GetInstance()->GetWorld());
-  ShaderObject(Core::GetInstance()->GetWorld());
+//  ShaderObject(Core::GetInstance()->GetWorld());
+  LightTest(Core::GetInstance()->GetWorld());
   while (Core::GetInstance()->OnUpdate())
     ;
 

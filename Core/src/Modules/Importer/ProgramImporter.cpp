@@ -34,6 +34,14 @@ void ShaderFileOnRemove(flecs::iter& it, size_t i, ShaderFile& files) {}
 void ShaderOnSet(flecs::iter& it, size_t i, Shader& shader) {
   auto self = it.entity(i);
 
+  int result =
+      (shader.vertexHandle == 0) + (shader.fragmentHandle == 0) +
+      (shader.geometryHandle == 0) + (shader.tessellationControlHandle == 0) +
+      (shader.tessellationEvaluationHandle == 0) + (shader.computeHandle == 0);
+  if (result <= 1) {
+    return;
+  }
+
   Handle handle = glCreateProgram();
   if (handle == 0) {
     assert(false && "ProgramWorker::Compile: glCreateProgram failed");
@@ -74,11 +82,14 @@ void ProgramOnRemove(flecs::iter& it, size_t i, Program& program) {
 ProgramImporter::ProgramImporter(world& ecs) {
   ecs.module<ProgramImporter>();
 
-  ecs.observer<ShaderFile>().event(flecs::OnSet).each(ShaderFileOnSet);
-  ecs.observer<ShaderFile>().event(flecs::OnRemove).each(ShaderFileOnRemove);
+  {
+    ecs.observer<ShaderFile>().event(flecs::OnSet).each(ShaderFileOnSet);
+    ecs.observer<ShaderFile>().event(flecs::OnRemove).each(ShaderFileOnRemove);
+  }
 
-  ecs.observer<Shader>().event(flecs::OnSet).each(ShaderOnSet);
-  ecs.observer<Shader>().event(flecs::OnRemove).each(ShaderOnRemove);
-
-  ecs.observer<Program>().event(flecs::OnRemove).each(ProgramOnRemove);
+  {
+    ecs.observer<Shader>().event(flecs::OnSet).each(ShaderOnSet);
+    ecs.observer<Shader>().event(flecs::OnRemove).each(ShaderOnRemove);
+  }
+  { ecs.observer<Program>().event(flecs::OnRemove).each(ProgramOnRemove); }
 }
