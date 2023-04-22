@@ -13,22 +13,19 @@
 
 MOD_BGN(DefferedRender)
 
+// TODO : working in progress , not finished yet
 void OnDefferedRender(DefferedRenderer& renderer, gBuffer& framebuffer) {
-  //  // geom render pass
-  //  {
-  //    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.handle);
-  //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  //    glUseProgram(renderer.geomHandle);
-  //
-  //    //    glDrawElementsInstancedBaseInstance()
-  //    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  //  }
-  //  // light pass
-  //  {
-  //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  //    glUseProgram(renderer.lightHandle);
-  //    glBindTextures(0, 1, &framebuffer.colorHandle);
-  //  }
+  {
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.handle);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUseProgram(renderer.geomHandle);
+  }
+  // lighting
+  {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glUseProgram(renderer.lightHandle);
+  }
 }
 
 auto genTexture = [](GLenum type, int width, int height,
@@ -77,6 +74,12 @@ void FrameBufferInit(flecs::iter& it, size_t i, FrameBuffer& buffer) {
   assert(status == GL_FRAMEBUFFER_COMPLETE);
 }
 
+void FrameBufferRelease(flecs::iter& it, size_t i, FrameBuffer& buffer) {
+  glDeleteFramebuffers(1, &buffer.handle);
+  glDeleteTextures(1, &buffer.colorHandle);
+  glDeleteTextures(1, &buffer.depthHandle);
+}
+
 void gBufferInit(flecs::iter& it, size_t i, gBuffer& g_buffer) {
   glCreateFramebuffers(1, &g_buffer.handle);
   glBindFramebuffer(GL_FRAMEBUFFER, g_buffer.handle);
@@ -111,10 +114,10 @@ void gBufferInit(flecs::iter& it, size_t i, gBuffer& g_buffer) {
   assert(status == GL_FRAMEBUFFER_COMPLETE);
 }
 
-void FrameBufferRelease(flecs::iter& it, size_t i, FrameBuffer& buffer) {
-  glDeleteFramebuffers(1, &buffer.handle);
-  glDeleteTextures(1, &buffer.colorHandle);
-  glDeleteTextures(1, &buffer.depthHandle);
+void DefferedCompInit(flecs::iter& it, size_t i, DefferedRenderer& renderer) {
+  auto self = it.entity(i);
+
+  self.add<gBuffer>();
 }
 
 DefferedRender::DefferedRender(world& ecs) {
@@ -131,10 +134,17 @@ DefferedRender::DefferedRender(world& ecs) {
         .each(FrameBufferInit);
     ecs.observer<FrameBuffer>("FrameBufferRelease")
         .event(flecs::UnSet)
+        .event(flecs::OnRemove)
         .each(FrameBufferRelease);
   }
 
-  { ecs.observer<gBuffer>().event(flecs::OnAdd).each(gBufferInit); }
+  {
+    ecs.observer<DefferedRenderer>()
+        .event(flecs::OnAdd)
+        .event(flecs::OnSet)
+        .each(DefferedCompInit);
+    ecs.observer<gBuffer>().event(flecs::OnAdd).each(gBufferInit);
+  }
 }
 
 MOD_END(DefferedRender)

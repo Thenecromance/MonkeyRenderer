@@ -29,7 +29,7 @@ struct PerFrameData {
 
 struct BaseRenderer {
   Handle handle{};
-  Handle vao{};
+  Handle vao{}; // vao should not be here
   unsigned int drawType{0x0004};
 };
 

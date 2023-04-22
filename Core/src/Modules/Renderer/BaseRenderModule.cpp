@@ -49,5 +49,4 @@ BaseRenderModule::BaseRenderModule(world& ecs) {
       .each(OnBaseRenderer);
 }
 
-
 MOD_END(BaseRenderModule)

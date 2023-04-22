@@ -5,7 +5,10 @@
 
 #include "Components/Components.hpp"
 #include "Components/RenderComponents.hpp"
+#include "Components/ShaderComp.hpp"
 #include "Core.hpp"
+#include "Modules/Importer/ModelImporter.hpp"
+#include "Modules/Importer/ProgramImporter.hpp"
 #include "Modules/Modules.hpp"
 #include "Modules/Renderer/AntiAliasingConfigModule.hpp"
 #include "Modules/Renderer/BaseRenederModule.hpp"
@@ -131,7 +134,7 @@ void PBRTest(world &ecs) {
 
   auto uid_model = ModelLoader::GetInstance()->LoadModelAndUpLoad(
       R"(data\glTF-Sample-Models\2.0\DamagedHelmet\glTF\DamagedHelmet.gltf)",
-      "DamagedHelmet");
+      "PBR_DamagedHelmet");
 
   GLuint modelMatrices;
   if (uid_model != 0) {
@@ -181,7 +184,7 @@ void PostProcessTest(world &ecs) {
   auto uid_duck = ModelLoader::GetInstance()->LoadModelAndUpLoad(
       R"(data\rubber_duck\scene.gltf)",
       //      "data\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf",
-      "rubberDuck");
+      "PPrubberDuck");
 #pragma endregion.
   auto post_handle = ProgramLoader::GetInstance()->LoadAndLink(
       {
@@ -235,16 +238,16 @@ void PostProcessTest(world &ecs) {
 void LightTest(world &ecs) {
 #pragma region Model Loading
   auto uid = TextureLoader::GetInstance().LoadAndCompile(
-      R"(data\rubber_duck\textures\Duck_baseColor.png)"
+      R"(D:\VSProject\Graphic\MonkeyRender\bin\data\glTF-Sample-Models\2.0\Box With Spaces\glTF\glTF Logo With Spaces.png)"
       //	        R"(data/wall.jpg)"
   );
   auto texture_handle = TextureLoader::GetInstance().GetHandle(uid);
- 
+
   auto uid_duck = ModelLoader::GetInstance()->LoadModelAndUpLoad(
-      R"(data\rubber_duck\scene.gltf)",
+      R"(data\glTF-Sample-Models\2.0\Box With Spaces\glTF\Box With Spaces.gltf)",
       //      "data\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf",
       //      R"(data\Container\Container.obj)",
-      "rubberDuck");
+      "LightTestBox");
 #pragma endregion.
 
 #pragma region Light
@@ -260,8 +263,7 @@ void LightTest(world &ecs) {
           "Shaders\\LightShader\\Light.frag",
       },
       "light_shader");
-#pragma  endregion
-  
+#pragma endregion
 
   ecs.entity("PointLight").add<PointLight>();
 
@@ -276,16 +278,21 @@ void LightTest(world &ecs) {
     // temp split them up to each single component to test
     ecs.entity(name.c_str())
         .set<Component::Model>(
-            {.hProgram = light_handle,
+            {.hProgram = light_handle,  // light shader
              .hVAO = ModelLoader::GetInstance()->GetVaoHandle(uid_duck),
              .hVertices = ModelLoader::GetInstance()->GetVboHandle(uid_duck),
              .hMatrices = modelMatrices,
              .uIndicesSize = static_cast<unsigned int>(
                  ModelLoader::GetInstance()->GetIndicesCount(uid_duck))})
         .set<Component::Texture>({.hHandle = texture_handle})
-        .set<Component::Position>({{1.0f, 1.0f, 1.0f}})
-        .set<PostProcess>({{post_handle},post_handle});
+        .set<Component::Position>({{1.0f, 1.0f, 1.0f}});
   }
+}
+void ShaderObject(world &ecs) {
+/*  auto e = ecs.entity("ShaderTest")
+               .set<ShaderFile>({"Shaders\\LightShader\\Light.vert",
+                                 "Shaders\\LightShader\\Light.frag"});
+  std::cout << e.get<Program>()->handle << std::endl;*/
 }
 int main() {
   Core::GetInstance()->Initialize(196, 8);
@@ -295,27 +302,20 @@ int main() {
       ->Import<Module::InputModule>()  // input operation
       .Import<Module::CameraModule>()  // camera operation
       .Import<Module::PerFrameDataModule>()
-      .Import<Module::GridModule>()
-      //      .Import<Module::RenderModule>()  // Render
-      .Import<Module::ModelRender>()
-      .Import<Module::PBRModule>()
-
+      .Import<ProgramImporter>()
+      .Import<ModelImporter>()
       .Import<LightModule>()
       .Import<BaseRenderModule>()
       .Import<ForwardRender>()
       .Import<DefferedRender>()
       .Import<PostProcessModule>()
 
+      .Import<Module::GridModule>()
       .Import<Module::ImGuiRenderModule>()
       .Import<AntiAliasingConfigModule>();
-
+  
   CreateCamera(Core::GetInstance()->GetWorld());
-  //  TestShader(Core::GetInstance()->GetWorld());
-  //  TextureLoaderTest(Core::GetInstance()->GetWorld());
-  //  ModelTest(Core::GetInstance()->GetWorld());
-  //  PBRTest(Core::GetInstance()->GetWorld());
-  //  PostProcessTest(Core::GetInstance()->GetWorld());
-  LightTest(Core::GetInstance()->GetWorld());
+
   while (Core::GetInstance()->OnUpdate())
     ;
 

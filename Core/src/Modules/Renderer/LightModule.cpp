@@ -9,7 +9,8 @@
 using namespace Monkey::Component;
 unsigned int lightHandle{};
 void OnPointLightUpdate(PointLight& light) {
-  // this is a test demo so just temp place these codes here
+  
+  glDisable(GL_BLEND);
   if (lightHandle == 0) {
     glCreateBuffers(1, &lightHandle);
     glNamedBufferStorage(lightHandle, sizeof(PointLight), nullptr,
@@ -18,6 +19,7 @@ void OnPointLightUpdate(PointLight& light) {
   }
 
   glNamedBufferSubData(lightHandle, 0, sizeof(PointLight), &light);
+  glEnable(GL_BLEND);
 }
 void LightUI(PointLight& light) {
   ImGui::Begin("Light");

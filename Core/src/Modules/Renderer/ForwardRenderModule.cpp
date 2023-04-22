@@ -2,6 +2,9 @@
 
 #include <flecs.h>
 #include <glad/glad.h>
+
+#include "Model/BaseModel.hpp"
+
 MOD_BGN(ForwardRenderModule)
 void OnRender(ForwardRenderer& renderer) {
   glEnable(GL_DEPTH_TEST);
@@ -16,15 +19,18 @@ void OnRender(ForwardRenderer& renderer) {
   // upload other data
 
   // glBindVertexArray(renderer.vao);
-  // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, /*Materials size */, /*Materials handle */);
-  // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, /*model matrices size */, /*Model Matrices handle */);
-  // glBindBuffer(GL_DRAW_INDIRECT_BUFFER, /*Indirect command*/);
-  // glBindBuffer(GL_PARAMETER_BUFFER, /*Indirect command*/);
-  // glMultiDrawElementsIndirect(/*RenderType */GL_TRIANGLES, GL_UNSIGNED_INT,( const void*)sizeof(GLsizei), /*shape size*/, 0);
+  // glBindBufferBase(GL_SHADER_STORAGE_BUFFER, /*Materials size */, /*Materials
+  // handle */); glBindBufferBase(GL_SHADER_STORAGE_BUFFER, /*model matrices
+  // size */, /*Model Matrices handle */); glBindBuffer(GL_DRAW_INDIRECT_BUFFER,
+  // /*Indirect command*/); glBindBuffer(GL_PARAMETER_BUFFER, /*Indirect
+  // command*/); glMultiDrawElementsIndirect(/*RenderType */GL_TRIANGLES,
+  // GL_UNSIGNED_INT,( const void*)sizeof(GLsizei), /*shape size*/, 0);
 
   glEnable(GL_BLEND);
   glDisable(GL_DEPTH_TEST);
 }
+
+
 
 ForwardRender::ForwardRender(world& ecs) {
   ecs.module<ForwardRender>();
@@ -34,21 +40,3 @@ ForwardRender::ForwardRender(world& ecs) {
       .each(OnRender);
 }
 MOD_END(ForwardRenderModule)
-
-// so the default render system should be
-/*
-entity("Model A").add<ForwardRenderer>(shaderHandle).add<Mesh>(meshes); // logic
-calculation entity("Model
-B").add<ForwardRenderer>(shaderHandle).add<Mesh>(meshes); // logic calculation
-entity("Model C").add<ForwardRenderer>(shaderHandle).add<Mesh>(meshes); // logic
-calculation
-            |
-            |
-            |
-entity("ForwardRenderPass").add<ForwardRenderer>(shaderHandle).add<Datas>(datas);
-// PreStore
-            |
-            |
-            |
-    rendered to screen
-*/

@@ -7,7 +7,7 @@ COMP_BGN(Model)
 struct Model {
   Handle hProgram;
   Handle hVAO;
-  Handle hVertices;
+  VertexHandle hVertices;
   Handle hMatrices;
   unsigned int uIndicesSize;
 };

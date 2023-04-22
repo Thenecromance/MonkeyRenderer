@@ -34,7 +34,7 @@ bool File::read(std::string &sContent) {
 
   std::string sLine;
   while (std::getline(file, sLine)) {
-    sContent += sLine;
+    sContent += sLine+"\n";
   }
 
   file.close();

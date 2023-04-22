@@ -29,7 +29,6 @@ flecsd.dll
 imgui.ini
 
 /Experimental/
-/bin/data/.bootstrap.json
 /bin/data/Container/
 /bin/data/font/
 /bin/data/glTF-Sample-Models/

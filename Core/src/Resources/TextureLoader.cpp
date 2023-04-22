@@ -25,6 +25,7 @@ Buffer TextureLoader::InsertBufferInfo(const std::string &path,
   if (pImg == nullptr) {
     Logger::get<TextureLoader>()->error("{}", stbi_failure_reason());
     Logger::get("TextureLoader")->info("Failed to load texture: {}", path);
+    assert(false);
   }
   //	Logger::get("TextureLoader")->info("Texture: {} loaded", pImg);
   const int imgSize = width * height * nrChannels;

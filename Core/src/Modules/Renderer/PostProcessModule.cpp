@@ -31,11 +31,14 @@ void PostProcessInit(flecs::iter& it, size_t i, PostProcess& process) {
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
                         (void*)(2 * sizeof(float)));
 
-  auto e = it.entity(i);
-  if (e.has<FrameBuffer>()) {
-    Logger::get<PostProcessModule>()->warn("entity already has framebuffer");
-  } else {
-    e.add<FrameBuffer>();
+  // create an frame buffer for post process
+  {
+    auto e = it.entity(i);
+    if (e.has<FrameBuffer>()) {
+      Logger::get<PostProcessModule>()->warn("entity already has framebuffer");
+    } else {
+      e.add<FrameBuffer>();
+    }
   }
 }
 
@@ -48,10 +51,8 @@ void PostProcessRelease(flecs::iter& it, size_t i, PostProcess& process) {
 }
 
 void PostProcessOnRender(PostProcess& process, FrameBuffer& buffer) {
-  const int SCR_WIDTH = 2560;
-  const int SCR_HEIGHT = 1440;
-
-  glBindFramebuffer(GL_FRAMEBUFFER,0);  // let 's the post process render to screen
+  glBindFramebuffer(GL_FRAMEBUFFER,
+                    0);  // let 's the post process render to screen
   glDisable(GL_DEPTH_TEST);
   glUseProgram(process.handle);  // use screen shader
   glBindVertexArray(process.vao);
