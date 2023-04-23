@@ -10,7 +10,6 @@ typedef unsigned int Format;
 typedef const char *ShaderSrc;
 
 typedef Handle ProgramHandle;
-typedef Handle TextureHandle;
 typedef Handle VertexHandle;
 typedef Handle IndexHandle;
 typedef Handle FrameBufferHandle;

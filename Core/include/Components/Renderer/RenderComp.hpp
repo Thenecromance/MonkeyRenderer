@@ -4,21 +4,6 @@
 
 #include "CommonDef.hpp"
 
-/*enum PBRTextureLocation {
-  Albedo,
-  Normal,
-  Metallic,
-  Roughness,
-  AO,
-  Emissive,
-  Count
-};*/
-
-struct TextureBuffer {
-  Handle hHandle{};
-  // TextureType Type = TextureType::Normal;
-};
-
 struct PerFrameData {
   glm::mat4 view;
   glm::mat4 proj;
@@ -29,7 +14,7 @@ struct PerFrameData {
 
 struct BaseRenderer {
   Handle handle{};
-  Handle vao{}; // vao should not be here
+  Handle vao{};  // vao should not be here
   unsigned int drawType{0x0004};
 };
 
@@ -43,25 +28,26 @@ struct DefferedRenderer {
   unsigned int drawType{0x0004};
 };
 
-#include <vector>
 struct PostProcess {
-  std::vector<Handle> backupHandles{};
   Handle handle{};
   Handle vao{};
 };
 
 struct FrameBuffer {
   Handle handle{};
-  TextureHandle colorHandle{};
-  TextureHandle depthHandle{};
+
+  Handle colorHandle{};
+  Handle depthHandle{};
 };
 
-struct gBuffer {
+struct GBuffer {
   Handle handle{};
 
-  TextureHandle positionHandle{};
-  TextureHandle NormalHandle{};
-  TextureHandle AlbedoHandle{};
+  Handle positionHandle{};
+  Handle NormalHandle{};
+  Handle AlbedoHandle{};
+
+  Handle depthHandle{};
 };
 
 struct DrawIndirectCommand {

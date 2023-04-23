@@ -3,24 +3,29 @@
 #include <map>
 
 #include "Buffer/Buffer.hpp"
+#include "CommonDef.hpp"
 #include "Job.hpp"
 #include "Marcos/Marcos.hpp"
 #include "Patterns/SingleTon.hpp"
 
 COMP_BGN(ImGuiRenderer)
-struct ImGuiComp {
-  float width;
-  float height;
+
+struct ImGuiBaseComp {
+  Handle texture_;
+  Handle vao_;
+  Handle vertices_;
+  Handle elements_;
+  Handle perFrame_;
 };
 COMP_END(ImGuiRenderer)
 
 MOD_BGN(ImGuiRenderer)
 
-class ImGuiRenderModule {
+class ImGuiRenderer {
  public:
-  explicit ImGuiRenderModule(world &ecs);
+  explicit ImGuiRenderer(world &ecs);
 
-  ~ImGuiRenderModule();
+  ~ImGuiRenderer(){};
 
   static void LoadImGuiFont(const char *font_path);
 
@@ -36,15 +41,6 @@ class ImGuiRenderModule {
   static void InitializeParams();
 
  private:
-  static void Renderer(Component::ImGuiComp &comp);
-
- private:
-  static unsigned int texture_;
-  static unsigned int vao_;
-  static unsigned int handle_;
-  static GBuffer *vertices_;
-  static GBuffer *elements_;
-  static GBuffer *perFrame_;
+  static void Renderer(Component::ImGuiBaseComp &comp);
 };
-
 MOD_END(ImGuiRenderer)

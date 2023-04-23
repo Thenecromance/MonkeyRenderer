@@ -5,6 +5,7 @@
 #include <glad/glad.h>
 
 #include "utils/Logger.hpp"
+/*
 
 GBuffer::GBuffer(unsigned int size, void *pData, unsigned int uiFlag)
     : size_(size), uiFlag_(uiFlag), bAllocated_(true) {
@@ -43,3 +44,4 @@ unsigned int GBuffer::ForceUpdate(unsigned int size, void *pData,
   bAllocated_ = false;
   return Update(size, pData, uiFlag);
 }
+*/

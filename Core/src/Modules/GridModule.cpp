@@ -11,7 +11,6 @@
 #include "Job.hpp"
 #include "Logger.hpp"
 #include "ShaderComp.hpp"
-#include "ShaderLoader.hpp"
 /*
 as what I want to do this module, an grid should be a component, when I need it
 , just import this module,then everything should be working, and when I don't
@@ -20,42 +19,38 @@ need it, just remove it, and other modules should not be affected
 
 MOD_BGN(Grid)
 using namespace Component;
-void OnUpdateGridRender(const GridComponent& Comp) {
-  NONE_ZERO_CHECK(Comp.handle);
+void OnUpdateGridRender(const GridComponent& Comp, Program& program) {
+  NONE_ZERO_CHECK(program.handle);
   glEnable(GL_BLEND);
 
   glBindVertexArray(Comp.vao);
-  glUseProgram(Comp.handle);
+  glUseProgram(program.handle);
   glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 0, 6, 1, 0);
   glDisable(GL_BLEND);
 }
 
-void UnLoadGrid(flecs::iter& it, size_t i, GridComponent& grid) {
+void UnLoadGrid(flecs::iter& it, size_t i, GridComponent& grid,
+                Program& program) {
   glDeleteVertexArrays(1, &grid.vao);
-  glDeleteProgram(grid.handle);
+  glDeleteProgram(program.handle);
 }
 
 GridModule::GridModule(world& ecs) {
   ecs.module<GridModule>();
   ecs.component<GridComponent>().member<Handle>("handle");
-  ecs.system<const GridComponent>("GridUpdater")
+  ecs.system<const GridComponent, Program>("GridUpdater")
       .kind(flecs::OnStore)
       .each(OnUpdateGridRender);
 
-  ecs.observer<Component::GridComponent>()
+  ecs.observer<Component::GridComponent, Program>()
       .event(flecs::OnRemove)
       .each(UnLoadGrid);
 
-  auto grid_handle = ecs.entity("gird").set<ShaderFile>(
+  auto grid = ecs.entity("Grid").add<GridComponent>().set<ShaderFile>(
       {"Shaders/Grid/grid.vs", "Shaders/Grid/grid.fs"});
 
-  glCreateVertexArrays(
-      1, &ecs.entity("Grid")
-              .set<GridComponent>({grid_handle.get<Program>()->handle})
-              .get_ref<GridComponent>()
-              ->vao);
+  glCreateVertexArrays(1, &grid.get_ref<GridComponent>()->vao);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  Logger::get<GridModule>()->info("GridModule Loaded");
 }
 
 MOD_END(Grid)

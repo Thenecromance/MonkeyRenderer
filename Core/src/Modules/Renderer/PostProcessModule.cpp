@@ -44,9 +44,9 @@ void PostProcessInit(flecs::iter& it, size_t i, PostProcess& process) {
 
 void PostProcessRelease(flecs::iter& it, size_t i, PostProcess& process) {
   glDeleteVertexArrays(1, &process.vao);
-  for (auto handle : process.backupHandles) {
-    glDeleteProgram(handle);
-  }
+//  for (auto handle : process.backupHandles) {
+//    glDeleteProgram(handle);
+//  }
   it.entity(i).remove<FrameBuffer>();
 }
 
@@ -64,16 +64,16 @@ void PostProcessOnRender(PostProcess& process, FrameBuffer& buffer) {
 
 void DebugUI(PostProcess& process, FrameBuffer& buffer) {
   ImGui::Begin("PostProcess");
-  const int size = process.backupHandles.size();
-  static int selected = -1;
-  for (int i = 0; i < size; ++i) {
-    char buf[32];
-    sprintf(buf, "Shader %d", i);
-    if (ImGui::Selectable(buf, selected == i)) {
-      selected = i;
-      process.handle = process.backupHandles[i];
-    }
-  }
+//  const int size = process.backupHandles.size();
+//  static int selected = -1;
+//  for (int i = 0; i < size; ++i) {
+//    char buf[32];
+//    sprintf(buf, "Shader %d", i);
+//    if (ImGui::Selectable(buf, selected == i)) {
+//      selected = i;
+//      process.handle = process.backupHandles[i];
+//    }
+//  }
   ImGui::End();
 
   ImGui::Begin("FrameBuffer");

@@ -23,13 +23,13 @@ void OnPointLightUpdate(PointLight& light) {
 }
 void LightUI(PointLight& light) {
   ImGui::Begin("Light");
-  ImGui::InputFloat("Position X:", &light.position.x, 1.0, 10.0);
-  ImGui::InputFloat("Position Y:", &light.position.y, 1.0, 10.0);
-  ImGui::InputFloat("Position Z:", &light.position.z, 1.0, 10.0);
+  ImGui::InputFloat("Position X:", &light.position.x, 1.0f,10.0f);
+  ImGui::InputFloat("Position Y:", &light.position.y, 1.0f,10.0f);
+  ImGui::InputFloat("Position Z:", &light.position.z, 1.0f,10.0f);
 
-  ImGui::InputFloat("Color R:", &light.color.r, 0.1, 1.0f);
-  ImGui::InputFloat("Color G:", &light.color.g, 0.1, 1.0f);
-  ImGui::InputFloat("Color B:", &light.color.b, 0.1, 1.0f);
+  ImGui::SliderFloat("Color R:", &light.color.r, 0.0f,1.0f);
+  ImGui::SliderFloat("Color G:", &light.color.g, 0.0f,1.0f);
+  ImGui::SliderFloat("Color B:", &light.color.b, 0.0f,1.0f);
   ImGui::End();
 }
 

@@ -29,11 +29,10 @@ void ShaderFileOnSet(flecs::iter& it, size_t i, ShaderFile& files) {
   self.set<Shader>(files.Compile());
   self.disable<ShaderFile>();
 }
-void ShaderFileOnRemove(flecs::iter& it, size_t i, ShaderFile& files) {}
+void ShaderFileOnRemove(flecs::iter&, size_t, ShaderFile& files) {}
 
 void ShaderOnSet(flecs::iter& it, size_t i, Shader& shader) {
   auto self = it.entity(i);
-
   int result =
       (shader.vertexHandle == 0) + (shader.fragmentHandle == 0) +
       (shader.geometryHandle == 0) + (shader.tessellationControlHandle == 0) +
@@ -64,7 +63,7 @@ void ShaderOnSet(flecs::iter& it, size_t i, Shader& shader) {
   self.set<Program>({handle});
 }
 
-void ShaderOnRemove(flecs::iter& it, size_t i, Shader& shader) {
+void ShaderOnRemove(flecs::iter&, size_t, Shader& shader) {
   if (shader.vertexHandle != 0) glDeleteShader(shader.vertexHandle);
   if (shader.fragmentHandle != 0) glDeleteShader(shader.fragmentHandle);
   if (shader.geometryHandle != 0) glDeleteShader(shader.geometryHandle);
@@ -75,7 +74,7 @@ void ShaderOnRemove(flecs::iter& it, size_t i, Shader& shader) {
   if (shader.computeHandle != 0) glDeleteShader(shader.computeHandle);
 }
 
-void ProgramOnRemove(flecs::iter& it, size_t i, Program& program) {
+void ProgramOnRemove(flecs::iter&, size_t, Program& program) {
   glDeleteProgram(program.handle);
 }
 

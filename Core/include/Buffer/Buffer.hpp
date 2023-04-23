@@ -198,6 +198,7 @@ class Buffer {
   uint32_t buffer_offset{0};  // buffer offset
 };
 
+/*
 class GBuffer {
  public:
   GBuffer(unsigned int size, void *pData, unsigned int uiFlag);
@@ -227,5 +228,6 @@ class GBuffer {
   unsigned int uiFlag_{};
   bool bAllocated_{};
 };
+*/
 
 #pragma warning(pop)

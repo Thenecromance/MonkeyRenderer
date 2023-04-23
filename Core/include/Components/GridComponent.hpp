@@ -6,7 +6,6 @@ COMP_BGN(FramePerSecondComp)
 
 /// this Component is useless shoudl be merge to another component
 struct GridComponent {
-  unsigned int handle;
   unsigned int vao;
 };
 COMP_END(FramePerSecondComp)

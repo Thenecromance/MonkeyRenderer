@@ -10,38 +10,25 @@
 #include <imgui_internal.h>
 
 #include <glm/ext.hpp>
-#include <glm/glm.hpp>
 
 #include "InputComponents.hpp"
 #include "Logger.hpp"
 #include "OpenGLApp.hpp"
-#include "ShaderLoader.hpp"
+#include "ShaderComp.hpp"
 
 using namespace Monkey::Component;
 
 struct InternalImGuiStart {};
 MOD_BGN(ImGuiRenderer)
-
-unsigned int ImGuiRenderModule::texture_ = 0;
-unsigned int ImGuiRenderModule::vao_ = 0;
-unsigned int ImGuiRenderModule::handle_ = 0;
-GBuffer *ImGuiRenderModule::vertices_ = nullptr;
-GBuffer *ImGuiRenderModule::elements_ = nullptr;
-GBuffer *ImGuiRenderModule::perFrame_ = nullptr;
-
-void ImGuiRenderModule::Renderer(ImGuiComp &comp) {
-  if (vertices_ == nullptr) return;
-  if (elements_ == nullptr) return;
-  if (perFrame_ == nullptr) return;
-
-  //  ImGui::ShowDemoWindow();
+void OnRender(const ImGuiBaseComp &comp, const Program &program) {
   ImGui::Render();
   ImDrawData *draw_data = ImGui::GetDrawData();
   if (!draw_data) return;
-  glBindTextures(0, 1, &texture_);
-  glBindVertexArray(vao_);
 
-  glUseProgram(handle_);
+  glBindTextures(0, 1, &comp.texture_);
+  glBindVertexArray(comp.vao_);
+
+  glUseProgram(program.handle);
 
   glEnable(GL_BLEND);
   glBlendEquation(GL_FUNC_ADD);
@@ -55,7 +42,7 @@ void ImGuiRenderModule::Renderer(ImGuiComp &comp) {
   const float T = draw_data->DisplayPos.y;
   const float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
   const glm::mat4 orthoProjection = glm::ortho(L, R, B, T);
-  glNamedBufferSubData(perFrame_->handle(), 0, sizeof(glm::mat4),
+  glNamedBufferSubData(comp.perFrame_, 0, sizeof(glm::mat4),
                        glm::value_ptr(orthoProjection));
 
   int width, height;
@@ -66,11 +53,11 @@ void ImGuiRenderModule::Renderer(ImGuiComp &comp) {
   for (int n = 0; n < draw_data->CmdListsCount; n++) {
     const ImDrawList *cmd_list = draw_data->CmdLists[n];
     glNamedBufferSubData(
-        vertices_->handle(), 0,
+        comp.vertices_, 0,
         (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof(ImDrawVert),
         cmd_list->VtxBuffer.Data);
     glNamedBufferSubData(
-        elements_->handle(), 0,
+        comp.elements_, 0,
         (GLsizeiptr)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx),
         cmd_list->IdxBuffer.Data);
 
@@ -90,8 +77,7 @@ void ImGuiRenderModule::Renderer(ImGuiComp &comp) {
   glScissor(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
   glDisable(GL_SCISSOR_TEST);
 }
-
-void NewFrame(const InternalImGuiStart &start) {
+void NewFrame(const InternalImGuiStart &) {
   int width, height;
   OpenGLApp::GetInstance()->GetWindowSize(width, height);
   ImGuiIO &io = ImGui::GetIO();
@@ -99,7 +85,7 @@ void NewFrame(const InternalImGuiStart &start) {
   ImGui::NewFrame();
 }
 
-void HandleInput(InputController &input, ImGuiComp &comp) {
+void HandleInput(InputController &input, ImGuiBaseComp &) {
   auto &io = ImGui::GetIO();
 
   memcpy(io.MouseDown, input.mouseButton.bPressed, 5);
@@ -193,53 +179,11 @@ void ImGuiKeyMapReMapping() {
   io.KeyMap[ImGuiKey_KeypadEqual] = GLFW_KEY_KP_EQUAL;
 }
 
-ImGuiRenderModule::ImGuiRenderModule(world &ecs) {
-  ecs.module<ImGuiRenderModule>();
-  Logger::get("Module")->info("System::ImGuiRenderModule");
-
-  ecs.component<ImGuiComp>("ImGuiComponent")
-      .member<float>("width")
-      .member<float>("height");
-
-  LoadSystem(ecs);
-  LoadEntity(ecs);
-
-  Initialize();
-  ImGuiKeyMapReMapping();
-}
-
-ImGuiRenderModule::~ImGuiRenderModule() {
-  glDeleteVertexArrays(1, &vao_);
-  delete vertices_;
-  delete elements_;
-  delete perFrame_;
-
-  Logger::get<ImGuiRenderModule>()->info("released ImGuiRenderModule");
-}
-
-void ImGuiRenderModule::LoadSystem(world &ecs) {
-  ecs.system<InputController, ImGuiComp>("System::ImGuiInputControl")
-      .kind(flecs::PostLoad)
-      .each(HandleInput);
-
-  ecs.system<const InternalImGuiStart>("System::ImGuiNewFrame")
-      .kind(flecs::PreFrame)
-      .each(NewFrame);
-
-  ecs.system<ImGuiComp>("System::ImGuiRenderer")
-      .kind(flecs::OnStore)
-      .each(Renderer);
-}
-
-void ImGuiRenderModule::LoadEntity(world &ecs) {
-  ecs.entity("Entity::ImGuiStartFrameDriver").add<InternalImGuiStart>();
-  ecs.entity("Entity::ImGuiShowDemo")
-      .set<ImGuiComp>({800.0f, 600.0f})
-      .add<InputController>();
-}
-
-void ImGuiRenderModule::LoadImGuiFont(const char *font_path) {
+void ImGuiLoadFont(unsigned int &texture_, const char *file_path) {
+  ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
+
+  io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
   ImFontConfig cfg = ImFontConfig();
   cfg.FontDataOwnedByAtlas = false;
   cfg.RasterizerMultiply = 1.5f;
@@ -247,7 +191,7 @@ void ImGuiRenderModule::LoadImGuiFont(const char *font_path) {
   cfg.PixelSnapH = true;
   cfg.OversampleH = 4;
   cfg.OversampleV = 4;
-  ImFont *Font = io.Fonts->AddFontFromFileTTF(font_path, cfg.SizePixels, &cfg);
+  ImFont *Font = io.Fonts->AddFontFromFileTTF(file_path, cfg.SizePixels, &cfg);
 
   unsigned char *pixels = nullptr;
   int width, height;
@@ -266,63 +210,64 @@ void ImGuiRenderModule::LoadImGuiFont(const char *font_path) {
   io.FontDefault = Font;
   io.DisplayFramebufferScale = ImVec2(1, 1);
 }
+void ImGuiBaseRenderInit(flecs::iter &it, size_t i, ImGuiBaseComp &comp) {
+  auto create_buffer = [](unsigned int size, unsigned int flags) -> Handle {
+    Handle handle = 0;
+    glCreateBuffers(1, &handle);
+    glNamedBufferStorage(handle, size, nullptr, flags);
+    return handle;
+  };
 
-void ImGuiRenderModule::defaultInitImGui() {
-  ImGui::CreateContext();
+  glCreateVertexArrays(1, &comp.vao_);
+  comp.vertices_ = create_buffer(128 * 1024, GL_DYNAMIC_STORAGE_BIT);
+  comp.elements_ = create_buffer(256 * 1024, GL_DYNAMIC_STORAGE_BIT);
+  comp.perFrame_ = create_buffer(sizeof(glm::mat4), GL_DYNAMIC_STORAGE_BIT);
 
-  ImGui::GetIO().BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
-  /*  ImGui::GetIO().ConfigFlags |=
-        ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls*/
-
-  LoadImGuiFont("data/font/Monaco.ttf");
-}
-
-void ImGuiRenderModule::InitializeParams() {
-  vertices_ = new GBuffer(128 * 1024, nullptr, GL_DYNAMIC_STORAGE_BIT);
-  elements_ = new GBuffer(256 * 1024, nullptr, GL_DYNAMIC_STORAGE_BIT);
-  perFrame_ = new GBuffer(sizeof(glm::mat4), nullptr, GL_DYNAMIC_STORAGE_BIT);
-
-  Logger::get("ImGuiRenderModule")
-      ->debug("vertices handle:{}, elements handle:{}, perFrame handle:{}",
-              vertices_->handle(), elements_->handle(), perFrame_->handle());
-}
-
-void ImGuiRenderModule::Initialize() {
-  InitializeParams();
-
-  glCreateVertexArrays(1, &vao_);
-
-  glVertexArrayElementBuffer(vao_, elements_->handle());
-  glVertexArrayVertexBuffer(vao_, 0, vertices_->handle(), 0,
+  glVertexArrayElementBuffer(comp.vao_, comp.elements_);
+  glVertexArrayVertexBuffer(comp.vao_, 0, comp.vertices_, 0,
                             sizeof(ImDrawVert));
 
-  glEnableVertexArrayAttrib(vao_, 0);
-  glEnableVertexArrayAttrib(vao_, 1);
-  glEnableVertexArrayAttrib(vao_, 2);
+  glEnableVertexArrayAttrib(comp.vao_, 0);
+  glEnableVertexArrayAttrib(comp.vao_, 1);
+  glEnableVertexArrayAttrib(comp.vao_, 2);
 
-  glVertexArrayAttribFormat(vao_, 0, 2, GL_FLOAT, GL_FALSE,
+  glVertexArrayAttribFormat(comp.vao_, 0, 2, GL_FLOAT, GL_FALSE,
                             IM_OFFSETOF(ImDrawVert, pos));
-  glVertexArrayAttribFormat(vao_, 1, 2, GL_FLOAT, GL_FALSE,
+  glVertexArrayAttribFormat(comp.vao_, 1, 2, GL_FLOAT, GL_FALSE,
                             IM_OFFSETOF(ImDrawVert, uv));
-  glVertexArrayAttribFormat(vao_, 2, 4, GL_UNSIGNED_BYTE, GL_TRUE,
+  glVertexArrayAttribFormat(comp.vao_, 2, 4, GL_UNSIGNED_BYTE, GL_TRUE,
                             IM_OFFSETOF(ImDrawVert, col));
 
-  glVertexArrayAttribBinding(vao_, 0, 0);
-  glVertexArrayAttribBinding(vao_, 1, 0);
-  glVertexArrayAttribBinding(vao_, 2, 0);
+  glVertexArrayAttribBinding(comp.vao_, 0, 0);
+  glVertexArrayAttribBinding(comp.vao_, 1, 0);
+  glVertexArrayAttribBinding(comp.vao_, 2, 0);
 
-  glBindBufferBase(GL_UNIFORM_BUFFER, 7, perFrame_->handle());
+  glBindBufferBase(GL_UNIFORM_BUFFER, 7, comp.perFrame_);
 
-  Logger::get("ImGuiRenderModule")->debug("vao_ handle:{}", vao_);
+  ImGuiLoadFont(comp.texture_, "data/font/Monaco.ttf");
+}
 
-  {
-    handle_ = ProgramLoader::GetInstance()->LoadAndLink(
-        {"Shaders/ImGuiShader/Imgui.vs", "Shaders/ImGuiShader/Imgui.fs"},
-        "ImGuiRenderer");
+ImGuiRenderer::ImGuiRenderer(world &ecs) {
+  ecs.observer<ImGuiBaseComp>().event(flecs::OnAdd).each(ImGuiBaseRenderInit);
 
-    Logger::get("ImGuiRenderModule")->debug("Program handle:{}", handle_);
-  }
-  defaultInitImGui();
+  ecs.system<InputController, ImGuiBaseComp>("System::ImGuiInputControl")
+      .kind(flecs::PostLoad)
+      .each(HandleInput);
+
+  ecs.system<const InternalImGuiStart>("System::ImGuiNewFrame")
+      .kind(flecs::PreFrame)
+      .each(NewFrame);
+
+  ecs.system<const ImGuiBaseComp, const Program>("System::ImGuiRenderer")
+      .kind(flecs::OnStore)
+      .each(OnRender);
+  ecs.entity("Entity::ImGuiStartFrameDriver").add<InternalImGuiStart>();
+  ecs.entity("ImGuiRenderer")
+      .add<ImGuiBaseComp>()
+      .add<InputController>()
+      .set<ShaderFile>(
+          {"Shaders/ImGuiShader/Imgui.vs", "Shaders/ImGuiShader/Imgui.fs"});
+  ImGuiKeyMapReMapping();
 }
 
 MOD_END(ImGuiRenderer)

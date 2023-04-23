@@ -21,7 +21,7 @@ void Element(_Type& comp);
 
 #include "BaseType.inl"
 
-ELE_(TextureType) { ImGui::Text("Texture Type:%d", comp); }
+
 ELE_(glm::vec3) {
   ImGui::InputFloat("X", &comp.x, STEP_FLOAT_MIN, STEP_FLOAT_MAX);
   ImGui::InputFloat("Y", &comp.y, STEP_FLOAT_MIN, STEP_FLOAT_MAX);
