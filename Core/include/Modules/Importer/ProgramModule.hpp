@@ -7,7 +7,7 @@
 
 
 
-class ProgramImporter {
+class ProgramModule {
  public:
-  explicit ProgramImporter(world& ecs);
+  explicit ProgramModule(world& ecs);
 };

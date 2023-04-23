@@ -2,9 +2,9 @@
 
 #include "Job.hpp"
 
-class TextureImporter {
+class TextureModule {
  public:
-  TextureImporter(world& ecs);
+  TextureModule(world& ecs);
 
  private:
   void LoadObserver(world& ecs);

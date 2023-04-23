@@ -1,7 +1,7 @@
-#include "TextureImporter.hpp"
-
 #include <flecs.h>
 #include <glad/glad.h>
+
+#include "TextureModule.hpp"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
@@ -34,7 +34,7 @@ void LoadByStb(std::string& path, unsigned int type, Handle& handle) {
     glTextureSubImage2D(handle, 0, 0, 0, width, height, GL_RGB,
                         GL_UNSIGNED_BYTE, data);
   } else {
-    Logger::get<TextureImporter>()->error("Failed to load texture:{}", path);
+    Logger::get<TextureModule>()->error("Failed to load texture:{}", path);
   }
   stbi_image_free(data);
 }
@@ -51,7 +51,7 @@ void LoadTexture(flecs::entity self, Texture& tex) {
   LoadByStb(tex.path, tex.loadType, handle);
 
   if (handle == 0) {
-    Logger::get<TextureImporter>()->info("Failed to load texture:{}", tex.path);
+    Logger::get<TextureModule>()->info("Failed to load texture:{}", tex.path);
   } else {
     std::string name = tex.name;
     if (name.empty()) {
@@ -66,18 +66,18 @@ void ReleaseTexture(flecs::iter& it, size_t i, TextureHandle& tex) {
   glDeleteTextures(1, &tex.handle);
 }
 
-TextureImporter::TextureImporter(world& ecs) {
-  ecs.module<TextureImporter>();
+TextureModule::TextureModule(world& ecs) {
+  ecs.module<TextureModule>();
   LoadObserver(ecs);
   RegisterComponent(ecs);
 }
 
-void TextureImporter::LoadObserver(world& ecs) {
+void TextureModule::LoadObserver(world& ecs) {
   ecs.observer<Texture>().event(flecs::OnSet).each(LoadTexture);
   ecs.observer<TextureHandle>().event(flecs::OnRemove).each(ReleaseTexture);
 }
 
-void TextureImporter::RegisterComponent(world& ecs) {
+void TextureModule::RegisterComponent(world& ecs) {
   //  ecs.component<Texture>()
   //      .member<std::string>("path")
   //      .member<unsigned int>("type")

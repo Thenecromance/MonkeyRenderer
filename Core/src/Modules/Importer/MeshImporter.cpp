@@ -2,8 +2,6 @@
 // Created by Thenecromance on 2023/4/23.
 //
 
-#include "MeshImporter.hpp"
-
 #include <assimp/cimport.h>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -16,6 +14,7 @@
 
 #include "Logger.hpp"
 #include "MeshComp.hpp"
+#include "MeshModule.hpp"
 #include "Position.hpp"
 #include "RenderComp.hpp"
 
@@ -143,7 +142,7 @@ void RegisterComponent(world& ecs) {
       .member<Handle>("Indirect");
 }
 
-MeshImporter::MeshImporter(world& ecs) {
+MeshModule::MeshModule(world& ecs) {
   RegisterComponent(ecs);
   ecs.observer<MeshFile>("observer::MeshFileOnSet")
       .event(flecs::OnSet)

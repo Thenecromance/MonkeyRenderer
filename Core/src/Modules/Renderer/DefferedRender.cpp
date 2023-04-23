@@ -13,7 +13,7 @@
 
 #include "Base/Position.hpp"
 #include "Logger.hpp"
-#include "Model/ModelComp.hpp"
+#include "MeshComp.hpp"
 #include "OpenGLApp.hpp"
 #include "Position.hpp"
 #include "Renderer/renderComp.hpp"
@@ -23,11 +23,11 @@ MOD_BGN(DefferedRender)
 using namespace glm;
 using namespace Component;
 
-void UpdateModelInfoTemp(const Model* model, const Position* pos,
+void UpdateModelInfoTemp(const Mesh* model, const Position* pos,
                          const Rotation* rotation) {
-  glBindVertexArray(model->hVAO);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, model->hVertices);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, model->hMatrices);
+  glBindVertexArray(model->vao);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, model->Vertices);
+  /*glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, model->hMatrices);
 
   const mat4 scale = glm::scale(mat4(1.0f), vec3(1.0f));
   const mat4 rot =
@@ -35,7 +35,7 @@ void UpdateModelInfoTemp(const Model* model, const Position* pos,
   //  const glm::vec3 position = glm::vec3(pos.x, pos.y, pos.z);
   const mat4 pos_ = glm::translate(mat4(1.0f), pos->value);
   const mat4 m = glm::rotate(scale * rot * pos_, 0.1f, vec3(0.0f, 0.0f, 1.0f));
-  glNamedBufferSubData(model->hMatrices, 0, sizeof(mat4), value_ptr(m));
+  glNamedBufferSubData(model->hMatrices, 0, sizeof(mat4), value_ptr(m));*/
 }
 
 void OnDefferedRender(flecs::iter& it) {
@@ -44,7 +44,7 @@ void OnDefferedRender(flecs::iter& it) {
     auto render = self.get<DefferedRenderer>();
     auto g_buffer = self.get<GBuffer>();
 
-    const auto model = self.get<Model>();
+    const auto mesh = self.get<Mesh>();
     const auto texture = self.get<TextureHandle>();
     const auto position = self.get<Position>();
     const auto rotation = self.get<Rotation>();
@@ -57,12 +57,12 @@ void OnDefferedRender(flecs::iter& it) {
       if (texture) {
         glBindTextures(0, 1, &texture->handle);
       }
-      UpdateModelInfoTemp(model, position, rotation);
-      glBindVertexArray(model->hVAO);
+      UpdateModelInfoTemp(mesh, position, rotation);
+      glBindVertexArray(mesh->vao);
 
       glDrawElementsInstancedBaseInstance(
-          GL_TRIANGLES, static_cast<GLsizei>(model->uIndicesSize),
-          GL_UNSIGNED_INT, nullptr, 1, 0);
+          GL_TRIANGLES, static_cast<GLsizei>(mesh->numIndices), GL_UNSIGNED_INT,
+          nullptr, 1, 0);
       glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 

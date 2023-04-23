@@ -8,9 +8,9 @@
 #include "Components/ShaderComp.hpp"
 #include "Components/Textures/Texture.hpp"
 #include "Core.hpp"
-#include "Modules/Importer/MeshImporter.hpp"
-#include "Modules/Importer/ProgramImporter.hpp"
-#include "Modules/Importer/TextureImporter.hpp"
+#include "Modules/Importer/MeshModule.hpp"
+#include "Modules/Importer/ProgramModule.hpp"
+#include "Modules/Importer/TextureModule.hpp"
 #include "Modules/Modules.hpp"
 #include "Modules/Renderer/AntiAliasingConfigModule.hpp"
 #include "Modules/Renderer/BaseRenederModule.hpp"
@@ -338,16 +338,16 @@ int main() {
       ->Import<Module::InputModule>()        // input operation
       .Import<Module::CameraModule>()        // camera operation
       .Import<Module::PerFrameDataModule>()  // update perframe data
-      .Import<ProgramImporter>()             // shader program loader
-      .Import<MeshImporter>()
-      .Import<TextureImporter>()
-      .Import<LightModule>()            // Light module , still working on it
-      .Import<BaseRenderModule>()       // Render sections
-      .Import<ForwardRender>()          // Render sections
-      .Import<DefferedRender>()         // Render sections
-      .Import<Module::GridModule>()     // grid
-      .Import<Module::ImGuiRenderer>()  // ImGuiRenderer
-      //      .Import<AntiAliasingConfigModule>()  // AA control
+      .Import<ProgramModule>()               // shader program loader
+      .Import<MeshModule>()
+      .Import<TextureModule>()
+      .Import<LightModule>()               // Light module , still working on it
+      .Import<BaseRender>()                // Render sections
+      .Import<ForwardRender>()             // Render sections
+      .Import<DefferedRender>()            // Render sections
+      .Import<Module::GridModule>()        // grid
+      .Import<Module::ImGuiRenderer>()     // ImGuiRenderer
+      .Import<AntiAliasingConfigModule>()  // AA control
       ;
 
   CreateCamera(Core::GetInstance()->GetWorld());

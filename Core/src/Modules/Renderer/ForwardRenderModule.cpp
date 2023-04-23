@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 
 #include "Base/Position.hpp"
-#include "Model/ModelComp.hpp"
+#include "MeshComp.hpp"
 #include "Texture.hpp"
 
 using namespace glm;
@@ -15,19 +15,20 @@ MOD_BGN(ForwardRenderModule)
 
 using namespace Component;
 
-void UpdateModelInfo(const Model* model, const Position* pos,
+void UpdateModelInfo(const Mesh* mesh, const Position* pos,
                      const Rotation* rotation) {
-  glBindVertexArray(model->hVAO);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, model->hVertices);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, model->hMatrices);
+  glBindVertexArray(mesh->vao);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mesh->Vertices);
+  /*  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, model->hMatrices);
 
-  const mat4 scale = glm::scale(mat4(1.0f), vec3(1.0f));
-  const mat4 rot =
-      glm::rotate(mat4(1.0f), glm::radians(180.0f), rotation->value);
-  //  const glm::vec3 position = glm::vec3(pos.x, pos.y, pos.z);
-  const mat4 pos_ = glm::translate(mat4(1.0f), pos->value);
-  const mat4 m = glm::rotate(scale * rot * pos_, 0.1f, vec3(0.0f, 0.0f, 1.0f));
-  glNamedBufferSubData(model->hMatrices, 0, sizeof(mat4), value_ptr(m));
+    const mat4 scale = glm::scale(mat4(1.0f), vec3(1.0f));
+    const mat4 rot =
+        glm::rotate(mat4(1.0f), glm::radians(180.0f), rotation->value);
+    //  const glm::vec3 position = glm::vec3(pos.x, pos.y, pos.z);
+    const mat4 pos_ = glm::translate(mat4(1.0f), pos->value);
+    const mat4 m = glm::rotate(scale * rot * pos_, 0.1f, vec3(0.0f,
+    0.0f, 1.0f)); glNamedBufferSubData(model->hMatrices, 0, sizeof(mat4),
+    value_ptr(m));*/
 }
 
 void OnRenderIter(flecs::iter& it) {
@@ -37,12 +38,10 @@ void OnRenderIter(flecs::iter& it) {
   for (auto i : it) {
     auto target = it.entity(i);
 
-    const auto model = target.get<Model>();
+    const auto mesh = target.get<Mesh>();
     const auto texture = target.get<TextureHandle>();
     const auto position = target.get<Position>();
     const auto rotation = target.get<Rotation>();
-
-    glUseProgram(target.get<Model>()->hProgram);
 
     // update Texture
     {
@@ -53,11 +52,10 @@ void OnRenderIter(flecs::iter& it) {
 
     //  upload Mesh info
     {
-      if (model) {
-        UpdateModelInfo(model, position, rotation);
+      if (mesh) {
+        UpdateModelInfo(mesh, position, rotation);
         glDrawElementsInstancedBaseInstance(
-            GL_TRIANGLES,
-            static_cast<GLsizei>(target.get<Model>()->uIndicesSize),
+            GL_TRIANGLES, static_cast<GLsizei>(mesh->numIndices),
             GL_UNSIGNED_INT, nullptr, 1, 0);
       }
     }

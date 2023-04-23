@@ -2,12 +2,11 @@
 // Created by Thenecromance on 2023/4/22.
 //
 
-#include "ProgramImporter.hpp"
-
 #include <flecs.h>
 #include <glad/glad.h>
 
 #include "Logger.hpp"
+#include "ProgramModule.hpp"
 #include "ShaderComp.hpp"
 
 bool CheckLinkStatus(Handle handle) {
@@ -78,8 +77,8 @@ void ProgramOnRemove(flecs::iter&, size_t, Program& program) {
   glDeleteProgram(program.handle);
 }
 
-ProgramImporter::ProgramImporter(world& ecs) {
-  ecs.module<ProgramImporter>();
+ProgramModule::ProgramModule(world& ecs) {
+  ecs.module<ProgramModule>();
 
   {
     ecs.observer<ShaderFile>().event(flecs::OnSet).each(ShaderFileOnSet);

@@ -4,8 +4,8 @@
 #include "Marcos/Marcos.hpp"
 
 MOD_BGN(BaseRenderModule)
-class BaseRenderModule {
+class BaseRender {
  public:
-  BaseRenderModule(world& ecs);
+  BaseRender(world& ecs);
 };
 MOD_END(BaseRenderModule)

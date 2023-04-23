@@ -3,7 +3,7 @@
 #include "CommonDef.hpp"
 #include "Job.hpp"
 
-class MeshImporter {
+class MeshModule {
  public:
-  MeshImporter(world& ecs);
+  MeshModule(world& ecs);
 };

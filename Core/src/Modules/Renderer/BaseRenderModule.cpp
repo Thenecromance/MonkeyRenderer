@@ -4,7 +4,7 @@
 #include "BaseRenederModule.hpp"
 #include "Components/Renderer/RenderComp.hpp"
 #include "Marcos/Marcos.hpp"
-MOD_BGN(BaseRenderModule)
+MOD_BGN(BaseRender)
 // void OnRender(entity e, BaseRenderer& render, PerFrameData& data) {
 //   // glNamedBufferSubData(data.handle, 0,
 //   //                      sizeof(PerFrameData) - sizeof(unsigned int),
@@ -46,8 +46,8 @@ void RemoveOtherRenderer(entity self, BaseRenderer& render) {
   if (self.has<DefferedRenderer>()) self.remove<DefferedRenderer>();
 }
 
-BaseRenderModule::BaseRenderModule(world& ecs) {
-  ecs.module<BaseRenderModule>();
+BaseRender::BaseRender(world& ecs) {
+  ecs.module<BaseRender>();
 
   ecs.system<BaseRenderer, PerFrameData>("OnBaseRenderer")
       .kind(flecs::OnStore)
@@ -56,4 +56,4 @@ BaseRenderModule::BaseRenderModule(world& ecs) {
   ecs.observer<BaseRenderer>().event(flecs::OnSet).each(RemoveOtherRenderer);
 }
 
-MOD_END(BaseRenderModule)
+MOD_END(BaseRender)
