@@ -44,7 +44,7 @@ void OnRender(const ImGuiBaseComp &comp, const Program &program) {
   const glm::mat4 orthoProjection = glm::ortho(L, R, B, T);
   glNamedBufferSubData(comp.perFrame_, 0, sizeof(glm::mat4),
                        glm::value_ptr(orthoProjection));
-
+//  glNamedBufferSubData (GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data)
   int width, height;
   /*glfwGetWindowSize((GLFWwindow *)OpenGLApp::GetInstance()->GetWindow(),
      &width, &height);*/
@@ -238,7 +238,7 @@ void ImGuiBaseRenderInit(flecs::iter &it, size_t i, ImGuiBaseComp &comp) {
   glVertexArrayAttribFormat(comp.vao_, 2, 4, GL_UNSIGNED_BYTE, GL_TRUE,
                             IM_OFFSETOF(ImDrawVert, col));
 
-  glVertexArrayAttribBinding(comp.vao_, 0, 0);
+  glVertexArrayAttribBinding(comp.vao_, 0, 0);/*(GLuint vaobj, GLuint attribindex, GLuint bindingindex);*/
   glVertexArrayAttribBinding(comp.vao_, 1, 0);
   glVertexArrayAttribBinding(comp.vao_, 2, 0);
 

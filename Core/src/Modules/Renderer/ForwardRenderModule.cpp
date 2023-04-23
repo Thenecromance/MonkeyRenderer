@@ -7,8 +7,8 @@
 #include <glm/glm.hpp>
 
 #include "Base/Position.hpp"
+#include "Model/ModelComp.hpp"
 #include "Texture.hpp"
-#include "Model/BaseModel.hpp"
 
 using namespace glm;
 MOD_BGN(ForwardRenderModule)
@@ -66,15 +66,19 @@ void OnRenderIter(flecs::iter& it) {
   glEnable(GL_BLEND);
 }
 
+void RemoveOtherRenderer(entity self, ForwardRenderer& render) {
+  if (self.has<BaseRenderer>()) self.remove<BaseRenderer>();
+  if (self.has<DefferedRenderer>()) self.remove<DefferedRenderer>();
+}
+
 ForwardRender::ForwardRender(world& ecs) {
   ecs.module<ForwardRender>();
 
-  /*  ecs.system<ForwardRenderer>("ForwardRenderSystem")
-        .kind(flecs::OnStore)
-        .each(OnRender);*/
   // use iter to draw
   ecs.system<ForwardRenderer>("ForwardRenderSystem")
       .kind(flecs::OnUpdate)
       .iter(OnRenderIter);
+
+  ecs.observer<ForwardRenderer>().event(flecs::OnSet).each(RemoveOtherRenderer);
 }
 MOD_END(ForwardRenderModule)

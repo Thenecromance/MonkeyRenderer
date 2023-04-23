@@ -4,10 +4,13 @@
 #include <array>
 
 #include "Components/Components.hpp"
+#include "Components/Model/MeshComp.hpp"
 #include "Components/ShaderComp.hpp"
+#include "Components/Textures/Texture.hpp"
 #include "Core.hpp"
-#include "Modules/Importer/ModelImporter.hpp"
+#include "Modules/Importer/MeshImporter.hpp"
 #include "Modules/Importer/ProgramImporter.hpp"
+#include "Modules/Importer/TextureImporter.hpp"
 #include "Modules/Modules.hpp"
 #include "Modules/Renderer/AntiAliasingConfigModule.hpp"
 #include "Modules/Renderer/BaseRenederModule.hpp"
@@ -15,6 +18,7 @@
 #include "Modules/Renderer/ForwardRenderModule.hpp"
 #include "Modules/Renderer/LightModule.hpp"
 #include "Modules/Renderer/PostProcessModule.hpp"
+
 using namespace Monkey;
 using namespace Monkey::Component;
 using namespace Monkey::Module;
@@ -318,26 +322,36 @@ void CreateCamera(world &ecs) {
 //              .lightHandle = ecs.entity("LightPass").get<Program>()->handle});
 //   }
 // }
+
+void MeshTest(world &ecs) {
+  ecs.entity("ForwardRender").set<ShaderFile>({"", ""});
+  ecs.entity("RubberDuck")
+      .set<MeshFile>({.path = R"(data\rubber_duck\scene.gltf)"})
+      .set<Texture>(
+          {.path = R"(data\rubber_duck\textures\Duck_baseColor.png)"});
+}
 int main() {
   Core::GetInstance()->Initialize(196, 8);
 
   Core::GetInstance()->EnableRest();
   Core::GetInstance()
-      ->Import<Module::InputModule>()  // input operation
-      .Import<Module::CameraModule>()  // camera operation
-      .Import<Module::PerFrameDataModule>()
-      .Import<ProgramImporter>()
-      .Import<ModelImporter>()
-      .Import<LightModule>()
-      .Import<BaseRenderModule>()
-      .Import<ForwardRender>()
-      .Import<DefferedRender>()
-      .Import<Module::GridModule>()
-      .Import<Module::ImGuiRenderer>()
-      .Import<AntiAliasingConfigModule>();
+      ->Import<Module::InputModule>()        // input operation
+      .Import<Module::CameraModule>()        // camera operation
+      .Import<Module::PerFrameDataModule>()  // update perframe data
+      .Import<ProgramImporter>()             // shader program loader
+      .Import<MeshImporter>()
+      .Import<TextureImporter>()
+      .Import<LightModule>()            // Light module , still working on it
+      .Import<BaseRenderModule>()       // Render sections
+      .Import<ForwardRender>()          // Render sections
+      .Import<DefferedRender>()         // Render sections
+      .Import<Module::GridModule>()     // grid
+      .Import<Module::ImGuiRenderer>()  // ImGuiRenderer
+      //      .Import<AntiAliasingConfigModule>()  // AA control
+      ;
 
   CreateCamera(Core::GetInstance()->GetWorld());
-
+  MeshTest(Core::GetInstance()->GetWorld());
   while (Core::GetInstance()->OnUpdate())
     ;
 

@@ -41,12 +41,19 @@ void OnBaseRenderer(entity e, BaseRenderer& render, PerFrameData& data) {
   glDisable(GL_DEPTH_TEST);
 }
 
+void RemoveOtherRenderer(entity self, BaseRenderer& render) {
+  if (self.has<ForwardRenderer>()) self.remove<ForwardRenderer>();
+  if (self.has<DefferedRenderer>()) self.remove<DefferedRenderer>();
+}
+
 BaseRenderModule::BaseRenderModule(world& ecs) {
   ecs.module<BaseRenderModule>();
 
   ecs.system<BaseRenderer, PerFrameData>("OnBaseRenderer")
       .kind(flecs::OnStore)
       .each(OnBaseRenderer);
+
+  ecs.observer<BaseRenderer>().event(flecs::OnSet).each(RemoveOtherRenderer);
 }
 
 MOD_END(BaseRenderModule)

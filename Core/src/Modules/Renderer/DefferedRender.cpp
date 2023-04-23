@@ -13,10 +13,11 @@
 
 #include "Base/Position.hpp"
 #include "Logger.hpp"
-#include "Model/BaseModel.hpp"
+#include "Model/ModelComp.hpp"
 #include "OpenGLApp.hpp"
 #include "Position.hpp"
 #include "Renderer/renderComp.hpp"
+#include "Texture.hpp"
 MOD_BGN(DefferedRender)
 
 using namespace glm;
@@ -44,7 +45,7 @@ void OnDefferedRender(flecs::iter& it) {
     auto g_buffer = self.get<GBuffer>();
 
     const auto model = self.get<Model>();
-//    const auto texture = self.get<Texture>();
+    const auto texture = self.get<TextureHandle>();
     const auto position = self.get<Position>();
     const auto rotation = self.get<Rotation>();
 
@@ -53,9 +54,9 @@ void OnDefferedRender(flecs::iter& it) {
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       glUseProgram(render->geomHandle);
 
-//      if (texture) {
-//        glBindTextures(0, 1, &texture->hHandle);
-//      }
+      if (texture) {
+        glBindTextures(0, 1, &texture->handle);
+      }
       UpdateModelInfoTemp(model, position, rotation);
       glBindVertexArray(model->hVAO);
 
@@ -66,11 +67,15 @@ void OnDefferedRender(flecs::iter& it) {
     }
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer->handle);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // write to default framebuffer
-    // blit to default framebuffer. Note that this may or may not work as the internal formats of both the FBO and default framebuffer have to match.
-    // the internal formats are implementation defined. This works on all of my systems, but if it doesn't on yours you'll likely have to write to the
-    // depth buffer in another shader stage (or somehow see to match the default framebuffer's internal format with the FBO's internal format).
-    glBlitFramebuffer(0, 0, 2560, 1440, 0, 0, 2560, 1440, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);  // write to default framebuffer
+    // blit to default framebuffer. Note that this may or may not work as the
+    // internal formats of both the FBO and default framebuffer have to match.
+    // the internal formats are implementation defined. This works on all of my
+    // systems, but if it doesn't on yours you'll likely have to write to the
+    // depth buffer in another shader stage (or somehow see to match the default
+    // framebuffer's internal format with the FBO's internal format).
+    glBlitFramebuffer(0, 0, 2560, 1440, 0, 0, 2560, 1440, GL_DEPTH_BUFFER_BIT,
+                      GL_NEAREST);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
 }
@@ -191,17 +196,22 @@ void gBufferInit(flecs::iter& it, size_t i, GBuffer& g_buffer) {
   assert(status == GL_FRAMEBUFFER_COMPLETE);
 }
 
-void DefferedCompInit(flecs::iter& it, size_t i, DefferedRenderer& renderer) {
-  auto self = it.entity(i);
-  if (self.has<BaseRenderer>()) self.disable<BaseRenderer>();
-  if (self.has<ForwardRenderer>()) self.disable<ForwardRenderer>();
+void RemoveOtherRenderer(entity self, DefferedRenderer& render) {
+  if (self.has<BaseRenderer>()) self.remove<BaseRenderer>();
+  if (self.has<ForwardRenderer>()) self.remove<ForwardRenderer>();
+}
+
+void DefferedCompInit(entity self, DefferedRenderer& renderer) {
+  RemoveOtherRenderer(self, renderer);
   self.add<GBuffer>();
 }
 
 void GBufferUI(GBuffer& buffer) {
   ImGui::Begin("GBuffer");
-  ImGui::Text("Position"); ImGui::SameLine();
-  ImGui::Text("Normal"); ImGui::SameLine();
+  ImGui::Text("Position");
+  ImGui::SameLine();
+  ImGui::Text("Normal");
+  ImGui::SameLine();
   ImGui::Text("Albedo");
   ImGui::Image((void*)(intptr_t)buffer.positionHandle, ImVec2(200, 200));
   ImGui::SameLine();
