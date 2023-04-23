@@ -39,21 +39,44 @@ void ShaderOnSet(flecs::iter& it, size_t i, Shader& shader) {
   if (result <= 1) {
     return;
   }
-
+  Logger::get<ProgramModule>()->trace("{}",self.name());
   Handle handle = glCreateProgram();
   if (handle == 0) {
     assert(false && "ProgramWorker::Compile: glCreateProgram failed");
   }
 
-#define ATTACH_SHADER(val) \
-  if (shader.val != 0) glAttachShader(handle, shader.val);
-  ATTACH_SHADER(vertexHandle)
-  ATTACH_SHADER(fragmentHandle)
-  ATTACH_SHADER(geometryHandle)
-  ATTACH_SHADER(tessellationControlHandle)
-  ATTACH_SHADER(tessellationEvaluationHandle)
-  ATTACH_SHADER(computeHandle)
-#undef ATTACH_SHADER
+  if (shader.vertexHandle != 0) {
+    glAttachShader(handle, shader.vertexHandle);
+    Logger::get<ProgramModule>()->trace("Linked vertexHandle:{}",
+                                        shader.vertexHandle);
+  }
+  if (shader.fragmentHandle != 0) {
+    glAttachShader(handle, shader.fragmentHandle);
+    Logger::get<ProgramModule>()->trace("Linked fragmentHandle:{}",
+                                        shader.fragmentHandle);
+  }
+  if (shader.geometryHandle != 0) {
+    glAttachShader(handle, shader.geometryHandle);
+    Logger::get<ProgramModule>()->trace("Linked geometryHandle:{}",
+                                        shader.geometryHandle);
+  }
+  if (shader.tessellationControlHandle != 0) {
+    glAttachShader(handle, shader.tessellationControlHandle);
+    Logger::get<ProgramModule>()->trace("Linked tessellationControlHandle:{}",
+                                        shader.tessellationControlHandle);
+  }
+  if (shader.tessellationEvaluationHandle != 0) {
+    glAttachShader(handle, shader.tessellationEvaluationHandle);
+    Logger::get<ProgramModule>()->trace(
+        "Linked tessellationEvaluationHandle:{}",
+        shader.tessellationEvaluationHandle);
+  }
+  if (shader.computeHandle != 0) {
+    glAttachShader(handle, shader.computeHandle);
+    Logger::get<ProgramModule>()->trace("Linked computeHandle:{}",
+                                        shader.computeHandle);
+  }
+
   glLinkProgram(handle);
   if (!CheckLinkStatus(handle)) {
     glDeleteProgram(handle);

@@ -202,6 +202,8 @@ void RemoveOtherRenderer(entity self, DefferedRenderer& render) {
 }
 
 void DefferedCompInit(entity self, DefferedRenderer& renderer) {
+  
+  
   RemoveOtherRenderer(self, renderer);
   self.add<GBuffer>();
 }

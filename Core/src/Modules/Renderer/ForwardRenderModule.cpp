@@ -8,6 +8,7 @@
 
 #include "Base/Position.hpp"
 #include "MeshComp.hpp"
+#include "ShaderComp.hpp"
 #include "Texture.hpp"
 
 using namespace glm;
@@ -50,13 +51,22 @@ void OnRenderIter(flecs::iter& it) {
       }
     }
 
-    //  upload Mesh info
+    //    //  upload Mesh info
+    //    {
+    //      if (mesh) {
+    //        UpdateModelInfo(mesh, position, rotation);
+    //        glDrawElementsInstancedBaseInstance(
+    //            GL_TRIANGLES, static_cast<GLsizei>(mesh->numIndices),
+    //            GL_UNSIGNED_INT, nullptr, 1, 0);
+    //      }
+    //    }
+
+    // Mesh Update and draw
     {
       if (mesh) {
-        UpdateModelInfo(mesh, position, rotation);
-        glDrawElementsInstancedBaseInstance(
-            GL_TRIANGLES, static_cast<GLsizei>(mesh->numIndices),
-            GL_UNSIGNED_INT, nullptr, 1, 0);
+        glBindVertexArray(mesh->vao);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mesh->Vertices);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, 0/*transform->Matrices*/);
       }
     }
   }
@@ -67,6 +77,11 @@ void OnRenderIter(flecs::iter& it) {
 void RemoveOtherRenderer(entity self, ForwardRenderer& render) {
   if (self.has<BaseRenderer>()) self.remove<BaseRenderer>();
   if (self.has<DefferedRenderer>()) self.remove<DefferedRenderer>();
+
+  if (render.handle == 0) {
+    render.handle =
+        self.world().entity("ForwardDefaultProgram").get<Program>()->handle;
+  }
 }
 
 ForwardRender::ForwardRender(world& ecs) {
@@ -76,6 +91,13 @@ ForwardRender::ForwardRender(world& ecs) {
   ecs.system<ForwardRenderer>("ForwardRenderSystem")
       .kind(flecs::OnUpdate)
       .iter(OnRenderIter);
+
+  ecs.entity("ForwardDefaultProgram")
+      .set<ShaderFile>({
+          R"(Shaders\ForwardRender\Default.vert)",
+          R"(Shaders\ForwardRender\Default.frag)",
+
+      });
 
   ecs.observer<ForwardRenderer>().event(flecs::OnSet).each(RemoveOtherRenderer);
 }
