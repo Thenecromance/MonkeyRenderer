@@ -9,6 +9,7 @@
 #include "ProgramModule.hpp"
 #include "ShaderComp.hpp"
 
+MOD_BGN(ProgramModule)
 bool CheckLinkStatus(Handle handle) {
   // check link program is success or not
   GLint success;
@@ -39,7 +40,7 @@ void ShaderOnSet(flecs::iter& it, size_t i, Shader& shader) {
   if (result <= 1) {
     return;
   }
-  Logger::get<ProgramModule>()->trace("{}",self.name());
+  Logger::get<ProgramModule>()->trace("{}", self.name());
   Handle handle = glCreateProgram();
   if (handle == 0) {
     assert(false && "ProgramWorker::Compile: glCreateProgram failed");
@@ -114,3 +115,5 @@ ProgramModule::ProgramModule(world& ecs) {
   }
   { ecs.observer<Program>().event(flecs::OnRemove).each(ProgramOnRemove); }
 }
+
+MOD_END(ProgramModule)

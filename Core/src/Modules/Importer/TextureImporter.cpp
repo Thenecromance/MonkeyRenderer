@@ -8,7 +8,7 @@
 #include "File.hpp"
 #include "Logger.hpp"
 #include "Texture.hpp"
-
+MOD_BGN(TextureModule)
 /// @brief Load texture from file and upload to GPU instantly
 /// @param path the file path
 /// @param type GL_TEXTURE_2D as default
@@ -77,14 +77,8 @@ void TextureModule::LoadObserver(world& ecs) {
 }
 
 void TextureModule::RegisterComponent(world& ecs) {
-  /*
-   ecs.component<Texture>()
-       .member<std::string>("path")
-       .member<unsigned int>("type")
-       .member<std::string>("name");
- */
+
   ecs.component<TextureHandle>().member<Handle>("handle").member<unsigned int>(
-      "type")
-      //      .member<std::string>("name")
-      ;
+      "type")      ;
 }
+MOD_END(TextureModule)

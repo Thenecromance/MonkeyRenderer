@@ -18,6 +18,8 @@
 #include "Position.hpp"
 #include "RenderComp.hpp"
 
+MOD_BGN(MeshModule)
+
 using namespace Monkey::Component;
 
 void ConvertAIMesh(const aiMesh* mesh, MeshData& out) {
@@ -34,14 +36,12 @@ void ConvertAIMesh(const aiMesh* mesh, MeshData& out) {
     srcVertex.push_back(v.y);
     srcVertex.push_back(v.z);
 
-    
-
     srcVertex.push_back(n.x);
     srcVertex.push_back(n.y);
     srcVertex.push_back(n.z);
-    
+
     srcVertex.push_back(t.x);
-    srcVertex.push_back( t.y);
+    srcVertex.push_back(t.y);
   }
 
   for (auto i = 0; i != mesh->mNumFaces; i++) {
@@ -89,12 +89,12 @@ void LoadMeshDataToGPU(flecs::entity e, MeshData& data) {
   mesh.numIndices = data.Indices.size();
 
   glCreateBuffers(1, &mesh.Indices);
-  glNamedBufferStorage(mesh.Indices, data.Indices.size()* sizeof(uint32_t), data.Indices.data(),
-                       0);
+  glNamedBufferStorage(mesh.Indices, data.Indices.size() * sizeof(uint32_t),
+                       data.Indices.data(), 0);
 
   glCreateBuffers(1, &mesh.Vertices);
-  glNamedBufferStorage(mesh.Vertices, data.Vertex.size()* sizeof(uint32_t), data.Vertex.data(),
-                       0);
+  glNamedBufferStorage(mesh.Vertices, data.Vertex.size() * sizeof(uint32_t),
+                       data.Vertex.data(), 0);
 
   //  glCreateBuffers(1,&mesh.Indirect);
   //  glNamedBufferStorage(mesh.Indirect,)
@@ -126,6 +126,7 @@ void LoadMeshDataToGPU(flecs::entity e, MeshData& data) {
 }
 
 void InitMesh(flecs::entity self, Mesh& mesh) {
+//  Logger::get<MeshModule>()->trace("{} Initalize Mesh", self.name().c_str());
   if (self.has<BaseRenderer>() || self.has<ForwardRenderer>() ||
       self.has<DefferedRenderer>()) {
     return;
@@ -156,3 +157,5 @@ MeshModule::MeshModule(world& ecs) {
 
   ecs.observer<Mesh>("observer::MeshOnSet").event(flecs::OnSet).each(InitMesh);
 }
+
+MOD_END(MeshModule)

@@ -8,6 +8,7 @@
 #include <glm/glm.hpp>
 
 #include "Base/Position.hpp"
+#include "Logger.hpp"
 
 MOD_BGN(TransformModule)
 
@@ -18,12 +19,12 @@ void TransformSystem(entity self, Monkey::Component::Transform& transform) {
   auto rotation_ = glm::vec3(1.0f);
   auto position_ = glm::vec3(1.0f);
   float angle_ = 0.0f;
-/*  if (self.has<Scale>()) scale_ = self.get<Scale>()->value;
+//  if (self.has<Scale>()) scale_ = self.get<Scale>()->value;
   if (self.has<Position>()) position_ = self.get<Position>()->value;
   if (self.has<Rotation>()) {
     rotation_ = self.get<Rotation>()->value;
     angle_ = self.get<Rotation>()->angle;
-  }*/
+  }
 
   const glm::mat4 scale = glm::scale(glm::mat4(1.0f), scale_);
   const glm::mat4 rotation =
@@ -32,13 +33,20 @@ void TransformSystem(entity self, Monkey::Component::Transform& transform) {
 
   const glm::mat4 m =
       glm::rotate(scale * rotation * pos, 0.1f, glm::vec3(0.0f, 0.0f, 1.0f));
-
-  glNamedBufferSubData(transform.Matrices, 0, sizeof(glm::mat4), value_ptr(m));
+  transform.value = m;
+    glNamedBufferSubData(transform.Matrices, 0, sizeof(glm::mat4),
+    value_ptr(m));
 }
 
-template <typename Comp_>
+/*template <typename Comp_>
 void AddTransForm(flecs::entity self, Comp_&) {
+
   if (self.has<Transform>()) return;
+
+
+  Logger::get<TransformModule>()->trace("{} Initalize Transform",
+                                        self.name().c_str());
+
   Handle handle = 0;
   glCreateBuffers(1, &handle);
   glNamedBufferStorage(handle, sizeof(glm::mat4), nullptr,
@@ -47,11 +55,59 @@ void AddTransForm(flecs::entity self, Comp_&) {
   if (handle != 0) {
     self.set<Transform>({.Matrices = handle});
   }
+}*/
+
+/*void AddTransFormFromPosition(flecs::iter& it, size_t i, Position&) {
+  auto self = it.entity(i);
+  if (self.has<Transform>()) return;
+
+  Logger::get<TransformModule>()->trace("{} Add Transform from Position",
+                                        self.name().c_str());
+  Handle handle = 0;
+  glCreateBuffers(1, &handle);
+  glNamedBufferStorage(handle, sizeof(glm::mat4), nullptr,
+                       GL_DYNAMIC_STORAGE_BIT);
+  if (handle != 0) {
+    self.set<Transform>({.Matrices = handle});
+  }
+}
+void AddTransFormFromScale(flecs::iter& it, size_t i, Scale&) {
+  auto self = it.entity(i);
+  if (self.has<Transform>()) return;
+  self.add<Transform>();
+  Logger::get<TransformModule>()->trace("{} Add Transform from Scale",
+                                        self.name().c_str());
+  Handle handle = 0;
+  glCreateBuffers(1, &handle);
+  glNamedBufferStorage(handle, sizeof(glm::mat4), nullptr,
+                       GL_DYNAMIC_STORAGE_BIT);
+  if (handle != 0) {
+    self.set<Transform>({.Matrices = handle});
+  }
+}
+void AddTransFormFromRotation(flecs::iter& it, size_t i, Rotation&) {
+  auto self = it.entity(i);
+  if (self.has<Transform>()) return;
+  Logger::get<TransformModule>()->trace("{} Add Transform from Rotation",
+                                        self.name().c_str());
+  Handle handle = 0;
+  glCreateBuffers(1, &handle);
+  glNamedBufferStorage(handle, sizeof(glm::mat4), nullptr,
+                       GL_DYNAMIC_STORAGE_BIT);
+  if (handle != 0) {
+    self.set<Transform>({.Matrices = handle});
+  }
+}*/
+
+void InitializeTransform(flecs::entity e, Transform& transform) {
+  glCreateBuffers(1, &transform.Matrices);
+  glNamedBufferStorage(transform.Matrices, sizeof(glm::mat4), nullptr,
+                       GL_DYNAMIC_STORAGE_BIT);
 }
 
 void LoadComponent(world& ecs) {
   ecs.component<Transform>().member<Handle>("handle");
-  
+
   ecs.component<Position>().member<float>("x").member<float>("y").member<float>(
       "z");
   ecs.component<Rotation>()
@@ -69,18 +125,7 @@ TransformModule::TransformModule(world& ecs) {
   ecs.system<Monkey::Component::Transform>("TransformUpdate")
       .each(TransformSystem);
 
-  ecs.observer<Scale>()
-      .event(flecs::OnAdd)
-      .event(flecs::OnSet)
-      .each(AddTransForm<Scale>);
-  ecs.observer<Position>()
-      .event(flecs::OnAdd)
-      .event(flecs::OnSet)
-      .each(AddTransForm<Position>);
-  ecs.observer<Rotation>()
-      .event(flecs::OnAdd)
-      .event(flecs::OnSet)
-      .each(AddTransForm<Rotation>);
+  ecs.observer<Transform>().event(flecs::OnAdd).each(InitializeTransform);
 }
 
 MOD_END(TransformModule)

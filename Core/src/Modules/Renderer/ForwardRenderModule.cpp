@@ -20,10 +20,8 @@ using namespace Component;
 void OnRenderIter(flecs::iter& it) {
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
-
   for (auto i : it) {
     auto target = it.entity(i);
-
     const auto mesh = target.get<Mesh>();
     const auto texture = target.get<TextureHandle>();
     const auto transform = target.get<Transform>();
@@ -40,14 +38,9 @@ void OnRenderIter(flecs::iter& it) {
         glBindVertexArray(mesh->vao);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mesh->Vertices);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, transform->Matrices);
-
-        glDrawElementsInstancedBaseInstance(
-            GL_TRIANGLES, static_cast<GLsizei>(mesh->numIndices),
-            GL_UNSIGNED_INT, nullptr, 1, 0);
-
-        //        glDrawElementsInstancedBaseVertexBaseInstance(
-        //            GL_TRIANGLES, static_cast<GLsizei>(mesh->numIndices),
-        //            GL_UNSIGNED_INT, nullptr, 1, 0, 0);
+        glDrawElementsInstanced( GL_TRIANGLES, static_cast<GLsizei>(mesh->numIndices),
+            GL_UNSIGNED_INT, nullptr, 1);
+//        (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount);
       }
     }
   }

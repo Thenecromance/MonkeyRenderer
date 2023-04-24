@@ -2,6 +2,13 @@
 
 #include <chrono>
 
+/*
+ * Snow flake is twitter's snowflake alg , as what I use is mainly for give each
+ * Local resources an unique id for search and checking ,so far is not
+ * necessary, but still have some plan about this to handle other things, need
+ * to do
+ */
+
 template <long long TIME_STAMP = 1680510003L>
 class Snowflake {
   static constexpr long long epoch = TIME_STAMP;

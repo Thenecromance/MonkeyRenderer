@@ -325,10 +325,43 @@ void CreateCamera(world &ecs) {
 // }
 
 void MeshTest(world &ecs) {
-  ecs.entity("PointLight").add<PointLight>();
-  ecs.entity("RubberDuck")
-      .set<MeshFile>({.path = R"(data\rubber_duck\scene.gltf)"})
-      .set<Texture>({.path = R"(data\rubber_duck\textures\Duck_baseColor.png)"});
+  // if using this way to create object, assimp will waste lots of time
+  /*  for (int i = 0; i < 1000; ++i) {
+      std::string name = "RubberDuck" + std::to_string(i);
+      int _rand = rand() % 10;
+
+      float location = _rand/3.14f;
+
+      ecs.entity(name.c_str())
+          .set<MeshFile>({.path = R"(data\rubber_duck\scene.gltf)"})
+          .set<Texture>(
+              {.path = R"(data\rubber_duck\textures\Duck_baseColor.png)"})
+          .set<Position>({{location, location, location}});
+    }*/
+
+  auto duck =
+      ecs.entity("RubberDuck")
+          .set<MeshFile>({.path = R"(data\rubber_duck\scene.gltf)"})
+          .set<Texture>(
+              {.path = R"(data\rubber_duck\textures\Duck_baseColor.png)"})
+      .add<Transform>();
+
+  float step = 1.0f;
+  for (int i = 0; i < 1000; ++i) {
+    std::string name = "RubberDuck" + std::to_string(i);
+    step = i * 10 * 0.2f;
+
+    ecs.entity(name.c_str())
+        .set<Mesh>({*duck.get<Mesh>()})
+        .set<TextureHandle>({*duck.get<TextureHandle>()})
+        .set<Position>({{step, 0.0f, 0.0f}})
+        .add<Transform>();
+  }
+//  duck.disable();
+  /*  ecs.entity("glTFDuck")
+        .set<MeshFile>({R"(data\glTF-Sample-Models\2.0\Duck\glTF\Duck.gltf)"})
+        .set<Texture>({R"(data/glTF-Sample-Models/2.0/Duck/glTF/DuckCM.png)"})
+        .set<Position>({{10.0f, 0.0f, 0.0f}});*/
 }
 int main() {
   Core::GetInstance()->Initialize(196, 8);

@@ -30,6 +30,7 @@ const char *GetTypeName() {
   return internal::GetTypeNameHelper<T>::GetTypeName();
 }
 
+/// @brief a simple way to wrapped the spdlog 
 class Logger {
  public:
   static std::shared_ptr<spdlog::logger> get(const std::string &name);
