@@ -39,7 +39,6 @@ void LoadByStb(std::string& path, unsigned int type, Handle& handle) {
   stbi_image_free(data);
 }
 
-
 void LoadTexture(flecs::entity self, Texture& tex) {
   Handle handle{};
   if (tex.loadType == 0) {
@@ -78,12 +77,14 @@ void TextureModule::LoadObserver(world& ecs) {
 }
 
 void TextureModule::RegisterComponent(world& ecs) {
-  //  ecs.component<Texture>()
-  //      .member<std::string>("path")
-  //      .member<unsigned int>("type")
-  //      .member<std::string>("name");
-
-  ecs.component<TextureHandle>().member<Handle>("handle").member<unsigned int>("type")
+  /*
+   ecs.component<Texture>()
+       .member<std::string>("path")
+       .member<unsigned int>("type")
+       .member<std::string>("name");
+ */
+  ecs.component<TextureHandle>().member<Handle>("handle").member<unsigned int>(
+      "type")
       //      .member<std::string>("name")
       ;
 }

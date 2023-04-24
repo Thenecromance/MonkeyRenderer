@@ -18,6 +18,7 @@
 #include "Modules/Renderer/ForwardRenderModule.hpp"
 #include "Modules/Renderer/LightModule.hpp"
 #include "Modules/Renderer/PostProcessModule.hpp"
+#include "Modules/TransformModule.hpp"
 
 using namespace Monkey;
 using namespace Monkey::Component;
@@ -324,11 +325,10 @@ void CreateCamera(world &ecs) {
 // }
 
 void MeshTest(world &ecs) {
-  ecs.entity("ForwardRender").set<ShaderFile>({"", ""});
+  ecs.entity("PointLight").add<PointLight>();
   ecs.entity("RubberDuck")
       .set<MeshFile>({.path = R"(data\rubber_duck\scene.gltf)"})
-      .set<Texture>(
-          {.path = R"(data\rubber_duck\textures\Duck_baseColor.png)"});
+      .set<Texture>({.path = R"(data\rubber_duck\textures\Duck_baseColor.png)"});
 }
 int main() {
   Core::GetInstance()->Initialize(196, 8);
@@ -338,7 +338,8 @@ int main() {
       ->Import<Module::InputModule>()        // input operation
       .Import<Module::CameraModule>()        // camera operation
       .Import<Module::PerFrameDataModule>()  // update perframe data
-      .Import<ProgramModule>()               // shader program loader
+      .Import<TransformModule>()
+      .Import<ProgramModule>()  // shader program loader
       .Import<MeshModule>()
       .Import<TextureModule>()
       .Import<LightModule>()               // Light module , still working on it

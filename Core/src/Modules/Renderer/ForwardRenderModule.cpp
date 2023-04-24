@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 
 #include "Base/Position.hpp"
+#include "Logger.hpp"
 #include "MeshComp.hpp"
 #include "ShaderComp.hpp"
 #include "Texture.hpp"
@@ -15,22 +16,6 @@ using namespace glm;
 MOD_BGN(ForwardRenderModule)
 
 using namespace Component;
-
-void UpdateModelInfo(const Mesh* mesh, const Position* pos,
-                     const Rotation* rotation) {
-  glBindVertexArray(mesh->vao);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mesh->Vertices);
-  /*  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, model->hMatrices);
-
-    const mat4 scale = glm::scale(mat4(1.0f), vec3(1.0f));
-    const mat4 rot =
-        glm::rotate(mat4(1.0f), glm::radians(180.0f), rotation->value);
-    //  const glm::vec3 position = glm::vec3(pos.x, pos.y, pos.z);
-    const mat4 pos_ = glm::translate(mat4(1.0f), pos->value);
-    const mat4 m = glm::rotate(scale * rot * pos_, 0.1f, vec3(0.0f,
-    0.0f, 1.0f)); glNamedBufferSubData(model->hMatrices, 0, sizeof(mat4),
-    value_ptr(m));*/
-}
 
 void OnRenderIter(flecs::iter& it) {
   glEnable(GL_DEPTH_TEST);
@@ -41,46 +26,47 @@ void OnRenderIter(flecs::iter& it) {
 
     const auto mesh = target.get<Mesh>();
     const auto texture = target.get<TextureHandle>();
-    const auto position = target.get<Position>();
-    const auto rotation = target.get<Rotation>();
+    const auto transform = target.get<Transform>();
+    const auto renderer = target.get<ForwardRenderer>();
 
+    glUseProgram(renderer->handle);
     // update Texture
     {
-      if (texture) {
-        glBindTextures(0, 1, &texture->handle);
-      }
+      if (texture) glBindTextures(0, 1, &texture->handle);
     }
 
-    //    //  upload Mesh info
-    //    {
-    //      if (mesh) {
-    //        UpdateModelInfo(mesh, position, rotation);
-    //        glDrawElementsInstancedBaseInstance(
-    //            GL_TRIANGLES, static_cast<GLsizei>(mesh->numIndices),
-    //            GL_UNSIGNED_INT, nullptr, 1, 0);
-    //      }
-    //    }
-
-    // Mesh Update and draw
     {
       if (mesh) {
         glBindVertexArray(mesh->vao);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mesh->Vertices);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, 0/*transform->Matrices*/);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, transform->Matrices);
+
+        glDrawElementsInstancedBaseInstance(
+            GL_TRIANGLES, static_cast<GLsizei>(mesh->numIndices),
+            GL_UNSIGNED_INT, nullptr, 1, 0);
+
+        //        glDrawElementsInstancedBaseVertexBaseInstance(
+        //            GL_TRIANGLES, static_cast<GLsizei>(mesh->numIndices),
+        //            GL_UNSIGNED_INT, nullptr, 1, 0, 0);
       }
     }
   }
 
   glEnable(GL_BLEND);
 }
-
+Handle defaulthandle = 0;
 void RemoveOtherRenderer(entity self, ForwardRenderer& render) {
-  if (self.has<BaseRenderer>()) self.remove<BaseRenderer>();
-  if (self.has<DefferedRenderer>()) self.remove<DefferedRenderer>();
+  if (self.has<BaseRenderer>()) {
+    Logger::get("Renderer")->warn("Found BaseRenderer, remove it");
+    self.remove<BaseRenderer>();
+  }
+  if (self.has<DefferedRenderer>()) {
+    Logger::get("Renderer")->warn("Found Deffered renderer, remove it");
+    self.remove<DefferedRenderer>();
+  }
 
   if (render.handle == 0) {
-    render.handle =
-        self.world().entity("ForwardDefaultProgram").get<Program>()->handle;
+    render.handle = defaulthandle;
   }
 }
 
@@ -92,13 +78,16 @@ ForwardRender::ForwardRender(world& ecs) {
       .kind(flecs::OnUpdate)
       .iter(OnRenderIter);
 
-  ecs.entity("ForwardDefaultProgram")
-      .set<ShaderFile>({
-          R"(Shaders\ForwardRender\Default.vert)",
-          R"(Shaders\ForwardRender\Default.frag)",
+  auto e = ecs.entity("ForwardDefaultProgram")
+               .set<ShaderFile>({
+                   R"(Shaders\ForwardRender\Default.vert)",
+                   R"(Shaders\ForwardRender\Default.frag)",
+               });
+  defaulthandle = e.get<Program>()->handle;
 
-      });
-
-  ecs.observer<ForwardRenderer>().event(flecs::OnSet).each(RemoveOtherRenderer);
+  ecs.observer<ForwardRenderer>()
+      .event(flecs::OnAdd)
+      .event(flecs::OnSet)
+      .each(RemoveOtherRenderer);
 }
 MOD_END(ForwardRenderModule)

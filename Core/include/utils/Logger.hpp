@@ -33,7 +33,6 @@ const char *GetTypeName() {
 class Logger {
  public:
   static std::shared_ptr<spdlog::logger> get(const std::string &name);
-
   template <typename Type>
   static std::shared_ptr<spdlog::logger> get() {
     return get(GetTypeName<Type>());

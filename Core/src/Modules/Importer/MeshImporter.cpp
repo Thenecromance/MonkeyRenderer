@@ -34,12 +34,14 @@ void ConvertAIMesh(const aiMesh* mesh, MeshData& out) {
     srcVertex.push_back(v.y);
     srcVertex.push_back(v.z);
 
-    srcVertex.push_back(t.x);
-    srcVertex.push_back(1.0 - t.y);
+    
 
     srcVertex.push_back(n.x);
     srcVertex.push_back(n.y);
     srcVertex.push_back(n.z);
+    
+    srcVertex.push_back(t.x);
+    srcVertex.push_back( t.y);
   }
 
   for (auto i = 0; i != mesh->mNumFaces; i++) {
@@ -87,11 +89,11 @@ void LoadMeshDataToGPU(flecs::entity e, MeshData& data) {
   mesh.numIndices = data.Indices.size();
 
   glCreateBuffers(1, &mesh.Indices);
-  glNamedBufferStorage(mesh.Indices, data.Indices.size(), data.Indices.data(),
+  glNamedBufferStorage(mesh.Indices, data.Indices.size()* sizeof(uint32_t), data.Indices.data(),
                        0);
 
   glCreateBuffers(1, &mesh.Vertices);
-  glNamedBufferStorage(mesh.Vertices, data.Vertex.size(), data.Indices.data(),
+  glNamedBufferStorage(mesh.Vertices, data.Vertex.size()* sizeof(uint32_t), data.Vertex.data(),
                        0);
 
   //  glCreateBuffers(1,&mesh.Indirect);

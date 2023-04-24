@@ -1,6 +1,17 @@
 #include "Logger.hpp"
 
 #include <iostream>
+std::unordered_map<std::string, std::shared_ptr<spdlog::logger>>
+    Logger::m_loggers;
+std::shared_ptr<spdlog::sinks::stdout_color_sink_mt> Logger::console_sink =
+    std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+std::shared_ptr<spdlog::sinks::basic_file_sink_mt> Logger::file_sink =
+    std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/monkey.log",
+                                                        true);
+std::shared_ptr<spdlog::sinks::basic_file_sink_mt> Logger::error_sink =
+    std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/monkey_error.log",
+                                                        true);
+bool Logger::bInit = false;
 
 std::shared_ptr<spdlog::logger> Logger::get(const std::string &name) {
   {
@@ -19,15 +30,3 @@ std::shared_ptr<spdlog::logger> Logger::get(const std::string &name) {
     return m_loggers[name];
   }
 }
-
-std::unordered_map<std::string, std::shared_ptr<spdlog::logger>>
-    Logger::m_loggers;
-std::shared_ptr<spdlog::sinks::stdout_color_sink_mt> Logger::console_sink =
-    std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-std::shared_ptr<spdlog::sinks::basic_file_sink_mt> Logger::file_sink =
-    std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/monkey.log",
-                                                        true);
-std::shared_ptr<spdlog::sinks::basic_file_sink_mt> Logger::error_sink =
-    std::make_shared<spdlog::sinks::basic_file_sink_mt>("logs/monkey_error.log",
-                                                        true);
-bool Logger::bInit = false;
