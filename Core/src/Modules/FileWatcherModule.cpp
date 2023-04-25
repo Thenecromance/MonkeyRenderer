@@ -147,41 +147,49 @@ void FileWatcherModule::OnUpdate() {
     // file has been modified
     if ((lastModified - mFileLastModified[file]).count() > 5 * 10000) {
       mFileLastModified.at(file) = lastModified;
-      auto fileId = mFiles.at(file);
-
-      // TODO: the modifiedEffects contains multi the same value (because of
-      // here, need to remove the same value)
-      std::vector<UID> modifiedEffects;
-      std::function<void(UID)> collect_all_effects = [&](UID ids) -> void {
-        for (auto cur : mGraph[ids]) {
-          modifiedEffects.push_back(cur);
-          collect_all_effects(cur);
-        }
-      };
-      collect_all_effects(fileId);
-      // here is the all effects need to update
-      for (auto effectId : modifiedEffects) {
-        // TODO : notify the effect need to update
-        std::string type = "";
-        auto data = GetHandleType(effectId);
-        switch (data) {
-          case eShader:
-            type = "Shader";
-            break;
-          case eProgram:
-            type = "Program";
-            break;
-          case eFile:
-            type = "File";
-            break;
-          default:
-            break;
-        }
-        std::cout << file << " changed: " << mHandles[effectId] << "\n"
-                  << "Handle type :" << type << "\n"
-                  << "RealHandle: " << GetRealHandle(effectId) << "\n"
-                  << " need to update" << std::endl;
-      }
+      
+      //catch all handles which get effect from this file
+      
+      // shit code
+      //       // TODO: the modifiedEffects contains multi the same value
+      //       (because of
+      //       // here, need to remove the same value)
+      //       std::vector<UID> modifiedEffects{};
+      //       std::function<void(UID)> collect_all_effects = [&](UID ids) ->
+      //       void {
+      //         for (auto cur : mGraph[ids]) {
+      //           modifiedEffects.push_back(cur);
+      //           collect_all_effects(cur);
+      //         }
+      //       };
+      //       collect_all_effects(FileId);
+      //       std::sort(modifiedEffects.begin(), modifiedEffects.end());
+      //       modifiedEffects.erase(
+      //           std::unique(modifiedEffects.begin(), modifiedEffects.end()),
+      //           modifiedEffects.end());
+      //       // here is the all effects need to update
+      //       for (auto effectId : modifiedEffects) {
+      //         // TODO : notify the effect need to update
+      //         std::string type = "";
+      //         auto data = GetHandleType(effectId);
+      //         switch (data) {
+      //           case eShader:
+      //             type = "Shader";
+      //             break;
+      //           case eProgram:
+      //             type = "Program";
+      //             break;
+      //           case eFile:
+      //             type = "File";
+      //             break;
+      //           default:
+      //             break;
+      //         }
+      //         std::cout << file << " changed: " << mHandles[effectId] << "\n"
+      //                   << "Handle type :" << type << "\n"
+      //                   << "RealHandle: " << GetRealHandle(effectId) << "\n"
+      //                   << " need to update" << std::endl;
+      //       }
     }
   }
 }

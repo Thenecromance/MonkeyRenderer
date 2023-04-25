@@ -54,7 +54,6 @@ layout (location = 0) out PerVertex vtx;
 
 void main()
 {
-
     mat4 model = in_Model[gl_InstanceID];
     mat4 MVP = proj * view * model;
 
