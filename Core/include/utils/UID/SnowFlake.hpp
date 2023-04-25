@@ -25,7 +25,6 @@ class Snowflake {
   static constexpr long long MAX_WORKER_ID = (1L << WORKER_ID_BITS) - 1;
   static constexpr long long MAX_DATACENTER_ID = (1L << DATACENTER_ID_BITS) - 1;
   static constexpr long long MAX_SEQUENCE = (1L << SEQUENCE_BITS) - 1;
-
   static constexpr long long SEQUENCE_MASK = (1L << SEQUENCE_BITS) - 1;
 
   using time_point = std::chrono::time_point<std::chrono::steady_clock>;
@@ -42,6 +41,13 @@ class Snowflake {
 
   // std::mutex mutex;
  public:
+  /// @brief get worker id from uid
+  /// @param uid
+  /// @return
+  int get_worker_id(long long uid) {
+    return (uid >> WORKER_ID_SHIFT) & MAX_WORKER_ID;
+  }
+  
   long long next_id(long long worker_id = 0) {
     // std::lock_guard<std::mutex> lock(mutex);
     auto timestamp = get_current_time();
