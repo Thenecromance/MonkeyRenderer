@@ -1,15 +1,12 @@
-
 #pragma once
 
 #include <filesystem>
 #include <map>
 #include <string>
 #include <vector>
-
+#include "CommonDef.hpp"
+#include "Patterns/SingleTon.hpp"
 #include "SnowFlake.hpp"
-typedef unsigned int Handle;
-typedef long long UID;
-
 /*
  just based on the snowflake and it's easy to handle each values' bit size.
  this module can easily include the file, shader, program, texture, etc. and can
@@ -17,9 +14,9 @@ typedef long long UID;
  */
 
 enum RecordType {
-  File,
-  Shader,
-  Program,
+  eFile,
+  eShader,
+  eProgram,
   MaxTypeSize = (1L << 10) - 1  // just because of the snowflake, worker id has
                                 // 5 bit so the max is 31
 };
@@ -44,10 +41,12 @@ class Relation {
   UID& at(Type&& keyVal) { return mTypeToID.at(keyVal); }
   Type& at(UID&& keyVal) { return mIDToType.at(keyVal); }
 
+/*
   void emplace(Type&& keyVal, UID&& value) {
     mTypeToID.emplace(keyVal, value);
     mIDToType.emplace(value, keyVal);
   }
+*/
 
   void emplace(Type& keyVal, UID& value) {
     mTypeToID.emplace(keyVal, value);
@@ -73,7 +72,7 @@ class Relation {
 };
 
 /// @brief file watcher module is mainly for watching file change and update
-class FileWatcherModule {
+class FileWatcherModule : public LazySingleTon<FileWatcherModule> {
   static constexpr int RECORD_TYPE_BIT_SHIFT = 10;
   static constexpr int MAX_TYPE_ID = (1L << RECORD_TYPE_BIT_SHIFT) - 1;
   typedef Handle WrappedHandle;
@@ -92,13 +91,11 @@ class FileWatcherModule {
   void OnUpdate();
 
  private:
-//  int GetHandleType(UID id);
+    int GetHandleType(UID id);
   Handle GetRealHandle(UID id);
 
  private:
-  static WrappedHandle wrapHandle(Handle handle, RecordType type) {
-    return (handle << RECORD_TYPE_BIT_SHIFT) | type;
-  }
+  static WrappedHandle wrapHandle(Handle handle, RecordType type);
 
   std::filesystem::file_time_type getFileLastModified(std::string file);
 

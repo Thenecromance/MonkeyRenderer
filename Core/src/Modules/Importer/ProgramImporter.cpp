@@ -5,6 +5,7 @@
 #include <flecs.h>
 #include <glad/glad.h>
 
+#include "FileWatcherModule.hpp"
 #include "Logger.hpp"
 #include "ProgramModule.hpp"
 #include "ShaderComp.hpp"
@@ -45,35 +46,42 @@ void ShaderOnSet(flecs::iter& it, size_t i, Shader& shader) {
   if (handle == 0) {
     assert(false && "ProgramWorker::Compile: glCreateProgram failed");
   }
-
+  std::vector<Handle> handles;
   if (shader.vertexHandle != 0) {
     glAttachShader(handle, shader.vertexHandle);
     Logger::get<ProgramModule>()->trace("Linked vertexHandle:{}",
                                         shader.vertexHandle);
+
+    handles.push_back(shader.vertexHandle);
   }
   if (shader.fragmentHandle != 0) {
     glAttachShader(handle, shader.fragmentHandle);
+    handles.push_back(shader.fragmentHandle);
     Logger::get<ProgramModule>()->trace("Linked fragmentHandle:{}",
                                         shader.fragmentHandle);
   }
   if (shader.geometryHandle != 0) {
     glAttachShader(handle, shader.geometryHandle);
+    handles.push_back(shader.geometryHandle);
     Logger::get<ProgramModule>()->trace("Linked geometryHandle:{}",
                                         shader.geometryHandle);
   }
   if (shader.tessellationControlHandle != 0) {
     glAttachShader(handle, shader.tessellationControlHandle);
+    handles.push_back(shader.tessellationControlHandle);
     Logger::get<ProgramModule>()->trace("Linked tessellationControlHandle:{}",
                                         shader.tessellationControlHandle);
   }
   if (shader.tessellationEvaluationHandle != 0) {
     glAttachShader(handle, shader.tessellationEvaluationHandle);
+    handles.push_back(shader.tessellationEvaluationHandle);
     Logger::get<ProgramModule>()->trace(
         "Linked tessellationEvaluationHandle:{}",
         shader.tessellationEvaluationHandle);
   }
   if (shader.computeHandle != 0) {
     glAttachShader(handle, shader.computeHandle);
+    handles.push_back(shader.computeHandle);
     Logger::get<ProgramModule>()->trace("Linked computeHandle:{}",
                                         shader.computeHandle);
   }
@@ -81,8 +89,11 @@ void ShaderOnSet(flecs::iter& it, size_t i, Shader& shader) {
   glLinkProgram(handle);
   if (!CheckLinkStatus(handle)) {
     glDeleteProgram(handle);
+    Logger::get<ProgramModule>()->error("Program link failed");
     return;
   }
+  
+  FileWatcherModule::GetInstance()->AddProgram(handle, handles);
   self.set<Program>({handle});
 }
 

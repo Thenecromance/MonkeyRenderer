@@ -7,6 +7,7 @@
 #include <glad/glad.h>
 
 #include "File.hpp"
+#include "FileWatcherModule.hpp"
 #include "Logger.hpp"
 
 Shader ShaderFile::Compile() {
@@ -14,26 +15,38 @@ Shader ShaderFile::Compile() {
   if (!vertexShader.empty()) {
     result.vertexHandle =
         CompileShader(GL_VERTEX_SHADER, ReadSource(vertexShader));
+    FileWatcherModule::GetInstance()->AddShader(vertexShader,
+                                                result.vertexHandle);
   }
   if (!fragmentShader.empty()) {
     result.fragmentHandle =
         CompileShader(GL_FRAGMENT_SHADER, ReadSource(fragmentShader));
+    FileWatcherModule::GetInstance()->AddShader(fragmentShader,
+                                                result.fragmentHandle);
   }
   if (!geometryShader.empty()) {
     result.geometryHandle =
         CompileShader(GL_GEOMETRY_SHADER, ReadSource(geometryShader));
+    FileWatcherModule::GetInstance()->AddShader(geometryShader,
+                                                result.geometryHandle);
   }
   if (!tessellationControlShader.empty()) {
     result.tessellationControlHandle = CompileShader(
         GL_TESS_CONTROL_SHADER, ReadSource(tessellationControlShader));
+    FileWatcherModule::GetInstance()->AddShader(
+        tessellationControlShader, result.tessellationControlHandle);
   }
   if (!tessellationEvaluationShader.empty()) {
     result.tessellationEvaluationHandle = CompileShader(
         GL_TESS_EVALUATION_SHADER, ReadSource(tessellationEvaluationShader));
+    FileWatcherModule::GetInstance()->AddShader(
+        tessellationEvaluationShader, result.tessellationEvaluationHandle);
   }
   if (!computeShader.empty()) {
     result.computeHandle =
         CompileShader(GL_COMPUTE_SHADER, ReadSource(computeShader));
+    FileWatcherModule::GetInstance()->AddShader(computeShader,
+                                                result.computeHandle);
   }
 
   return result;

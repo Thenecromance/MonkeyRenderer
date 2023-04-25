@@ -54,7 +54,7 @@ void FileWatcherModule::AddFile(std::string file) {
   if (mFiles.has(file)) {
     return;
   }
-  auto FileId = mIDGenerator.next_id(File);
+  UID FileId = mIDGenerator.next_id(eFile);
   mFiles.emplace(file, FileId);
 
   mGraph[FileId] = {};
@@ -72,16 +72,16 @@ void FileWatcherModule::AddShader(std::string shader, Handle handle) {
     return;
   }
   // now the handle contain it's type
-  handle = wrapHandle(handle, Shader);
+  handle = wrapHandle(handle, eShader);
   // if shader container has this shader,return
   if (mHandles.has(handle)) {
     return;
   }
-  auto ShaderId = mIDGenerator.next_id(Shader);
+  UID ShaderId = mIDGenerator.next_id(eShader);
   if (!mFiles.has(shader)) {
     AddFile(shader);
   }
-  auto FileId = mFiles.at(shader);
+  UID FileId = mFiles.at(shader);
 
   // add shader info
   mHandles.emplace(handle, ShaderId);
@@ -104,13 +104,13 @@ void FileWatcherModule::AddProgram(Handle program,
   if (mHandles.has(program)) {
     return;
   }
-  program = wrapHandle(program, Program);
-  auto ProgramId = mIDGenerator.next_id(Program);
+  program = wrapHandle(program, eProgram);
+  UID ProgramId = mIDGenerator.next_id(eProgram);
   // add program info
   mHandles.emplace(program, ProgramId);
   mGraph[ProgramId] = {};  // add node to graph
   for (auto shader : shaders) {
-    shader = wrapHandle(shader, Shader);
+    shader = wrapHandle(shader, eShader);
     if (!mHandles.has(shader)) {
       continue;
     }
@@ -145,10 +145,12 @@ void FileWatcherModule::OnUpdate() {
     auto lastModified = getFileLastModified(file);
 
     // file has been modified
-    if ((lastModified - mFileLastModified[file]).count() > 300020) {
+    if ((lastModified - mFileLastModified[file]).count() > 5 * 10000) {
       mFileLastModified.at(file) = lastModified;
       auto fileId = mFiles.at(file);
 
+      // TODO: the modifiedEffects contains multi the same value (because of
+      // here, need to remove the same value)
       std::vector<UID> modifiedEffects;
       std::function<void(UID)> collect_all_effects = [&](UID ids) -> void {
         for (auto cur : mGraph[ids]) {
@@ -159,8 +161,25 @@ void FileWatcherModule::OnUpdate() {
       collect_all_effects(fileId);
       // here is the all effects need to update
       for (auto effectId : modifiedEffects) {
-        std::cout << file << " changed: " << mHandles[effectId]
-                  << ":RealHandle " << GetRealHandle(effectId)
+        // TODO : notify the effect need to update
+        std::string type = "";
+        auto data = GetHandleType(effectId);
+        switch (data) {
+          case eShader:
+            type = "Shader";
+            break;
+          case eProgram:
+            type = "Program";
+            break;
+          case eFile:
+            type = "File";
+            break;
+          default:
+            break;
+        }
+        std::cout << file << " changed: " << mHandles[effectId] << "\n"
+                  << "Handle type :" << type << "\n"
+                  << "RealHandle: " << GetRealHandle(effectId) << "\n"
                   << " need to update" << std::endl;
       }
     }
@@ -170,13 +189,20 @@ std::filesystem::file_time_type FileWatcherModule::getFileLastModified(
     std::string file) {
   return std::filesystem::last_write_time(file);
 }
-// int FileWatcherModule::GetHandleType(UID id) {
-//   // get handle type
-//   auto handle = mHandles[id];
-//   return static_cast<int>((handle >> RECORD_TYPE_BIT_SHIFT) & MAX_TYPE_ID);
-// }
+
+int FileWatcherModule::GetHandleType(UID id) {
+  // get handle type
+  auto handle = mHandles[id];
+  return static_cast<int>((handle >> RECORD_TYPE_BIT_SHIFT) & MAX_TYPE_ID);
+}
 Handle FileWatcherModule::GetRealHandle(UID id) {
   // get real handle
   auto handle = mHandles[id];
-  return handle >> RECORD_TYPE_BIT_SHIFT;
+  return handle & MAX_TYPE_ID;
+}
+
+FileWatcherModule::WrappedHandle FileWatcherModule::wrapHandle(
+    Handle handle, RecordType type) {
+  //  return (handle << RECORD_TYPE_BIT_SHIFT) | type;
+  return (type << RECORD_TYPE_BIT_SHIFT) | type;
 }
