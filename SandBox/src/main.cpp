@@ -82,7 +82,7 @@ void CreateCamera(world &ecs) {
   glm::vec3 position = glm::vec3(0.0f, 10.0f, 0.0f);
   glm::vec3 target = glm::vec3(0.0f, 0.0f, -1.0f);
   glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-  ecs.entity("CameraTest")
+  ecs.entity("MainCamera")
       .set<Component::CameraComponent>(
           {position, glm::lookAt(position, target, up), up})
       .add<Component::InputController>();
@@ -325,39 +325,37 @@ void CreateCamera(world &ecs) {
 // }
 
 void MeshTest(world &ecs) {
-  // if using this way to create object, assimp will waste lots of time
-  /*  for (int i = 0; i < 1000; ++i) {
-      std::string name = "RubberDuck" + std::to_string(i);
-      int _rand = rand() % 10;
-
-      float location = _rand/3.14f;
-
-      ecs.entity(name.c_str())
-          .set<MeshFile>({.path = R"(data\rubber_duck\scene.gltf)"})
-          .set<Texture>(
-              {.path = R"(data\rubber_duck\textures\Duck_baseColor.png)"})
-          .set<Position>({{location, location, location}});
-    }*/
-
   auto duck =
       ecs.entity("RubberDuck")
           .set<MeshFile>({.path = R"(data\rubber_duck\scene.gltf)"})
           .set<Texture>(
               {.path = R"(data\rubber_duck\textures\Duck_baseColor.png)"})
-      .add<Transform>();
+          .add<Transform>();
 
-  float step = 1.0f;
-  for (int i = 0; i < 1000; ++i) {
-    std::string name = "RubberDuck" + std::to_string(i);
-    step = i * 10 * 0.2f;
-
-    ecs.entity(name.c_str())
-        .set<Mesh>({*duck.get<Mesh>()})
-        .set<TextureHandle>({*duck.get<TextureHandle>()})
-        .set<Position>({{step, 0.0f, 0.0f}})
-        .add<Transform>();
+  for (int x = 0; x < 50; ++x) {
+    for (int y = 0; y < 20; ++y) {
+      std::string name =
+          "RubberDuck_x" + std::to_string(x) + "y" + std::to_string(y);
+      ecs.entity(name.c_str())
+          .set<Mesh>({*duck.get<Mesh>()})
+          .set<TextureHandle>({*duck.get<TextureHandle>()})
+          .set<Position>({{x * 2.0f, 0.0f, y * 2.0f}})
+          .add<Transform>();
+    }
   }
-//  duck.disable();
+  duck.disable();
+  //  float step = 1.0f;
+  //  for (int i = 0; i < 1000; ++i) {
+  //    std::string name = "RubberDuck" + std::to_string(i);
+  //    step = i * 10 * 0.2f;
+  //
+  //    ecs.entity(name.c_str())
+  //        .set<Mesh>({*duck.get<Mesh>()})
+  //        .set<TextureHandle>({*duck.get<TextureHandle>()})
+  //        .set<Position>({{step, 0.0f, 0.0f}})
+  //        .add<Transform>();
+  //  }
+  //  duck.disable();
   /*  ecs.entity("glTFDuck")
         .set<MeshFile>({R"(data\glTF-Sample-Models\2.0\Duck\glTF\Duck.gltf)"})
         .set<Texture>({R"(data/glTF-Sample-Models/2.0/Duck/glTF/DuckCM.png)"})

@@ -4,11 +4,14 @@
 
 #include "FileWatcherModule.hpp"
 
+#include <glad/glad.h>
+
 #include <cassert>
 #include <functional>
 #include <iostream>
 #include <queue>
 
+#include "File.hpp"
 // using topological sort to check if there is a circle in the graph
 bool FileWatcherModule::hasCircle() {
   std::map<UID, int> inDegree;
@@ -138,63 +141,8 @@ void FileWatcherModule::AddFileToFile(std::string file, std::string parent) {
   }
 }
 
-void FileWatcherModule::OnUpdate() {
-  for (auto it : mFiles.getMap()) {
-    auto file = it.first;
-    auto FileId = it.second;
-    auto lastModified = getFileLastModified(file);
-
-    // file has been modified
-    if ((lastModified - mFileLastModified[file]).count() > 5 * 10000) {
-      mFileLastModified.at(file) = lastModified;
-      
-      //catch all handles which get effect from this file
-      
-      // shit code
-      //       // TODO: the modifiedEffects contains multi the same value
-      //       (because of
-      //       // here, need to remove the same value)
-      //       std::vector<UID> modifiedEffects{};
-      //       std::function<void(UID)> collect_all_effects = [&](UID ids) ->
-      //       void {
-      //         for (auto cur : mGraph[ids]) {
-      //           modifiedEffects.push_back(cur);
-      //           collect_all_effects(cur);
-      //         }
-      //       };
-      //       collect_all_effects(FileId);
-      //       std::sort(modifiedEffects.begin(), modifiedEffects.end());
-      //       modifiedEffects.erase(
-      //           std::unique(modifiedEffects.begin(), modifiedEffects.end()),
-      //           modifiedEffects.end());
-      //       // here is the all effects need to update
-      //       for (auto effectId : modifiedEffects) {
-      //         // TODO : notify the effect need to update
-      //         std::string type = "";
-      //         auto data = GetHandleType(effectId);
-      //         switch (data) {
-      //           case eShader:
-      //             type = "Shader";
-      //             break;
-      //           case eProgram:
-      //             type = "Program";
-      //             break;
-      //           case eFile:
-      //             type = "File";
-      //             break;
-      //           default:
-      //             break;
-      //         }
-      //         std::cout << file << " changed: " << mHandles[effectId] << "\n"
-      //                   << "Handle type :" << type << "\n"
-      //                   << "RealHandle: " << GetRealHandle(effectId) << "\n"
-      //                   << " need to update" << std::endl;
-      //       }
-    }
-  }
-}
 std::filesystem::file_time_type FileWatcherModule::getFileLastModified(
-    std::string file) {
+    const std::string& file) {
   return std::filesystem::last_write_time(file);
 }
 
@@ -213,4 +161,31 @@ FileWatcherModule::WrappedHandle FileWatcherModule::wrapHandle(
     Handle handle, RecordType type) {
   //  return (handle << RECORD_TYPE_BIT_SHIFT) | type;
   return (type << RECORD_TYPE_BIT_SHIFT) | type;
+}
+
+void ReCompileShader(Handle shader, std::string file) {
+  File shd(file);
+  std::string src;
+  shd.read(src);
+  auto s = src.c_str();
+  glShaderSource(shader, 1, &s, nullptr);
+  glCompileShader(shader);
+}
+
+void ReLinkProgram(Handle program) { glLinkProgram(program); }
+
+void FileWatcherModule::OnUpdate() {
+  for (const auto& it : mFiles.getMap()) {
+    auto file = it.first;
+    auto FileId = it.second;
+    auto lastModified = getFileLastModified(file);
+
+    // file has been modified
+    if ((lastModified - mFileLastModified[file]).count() > 5 * 10000) {
+      mFileLastModified.at(file) = lastModified;
+
+      // catch all handles which get effect from this file
+      
+    }
+  }
 }

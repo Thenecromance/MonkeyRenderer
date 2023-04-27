@@ -17,6 +17,7 @@ MOD_BGN(ForwardRenderModule)
 
 using namespace Component;
 
+
 void OnRenderIter(flecs::iter& it) {
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
@@ -38,9 +39,11 @@ void OnRenderIter(flecs::iter& it) {
         glBindVertexArray(mesh->vao);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mesh->Vertices);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, transform->Matrices);
-        glDrawElementsInstanced( GL_TRIANGLES, static_cast<GLsizei>(mesh->numIndices),
-            GL_UNSIGNED_INT, nullptr, 1);
-//        (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount);
+        glDrawElementsInstanced(GL_TRIANGLES,
+                                static_cast<GLsizei>(mesh->numIndices),
+                                GL_UNSIGNED_INT, nullptr, 1);
+        //        (GLenum mode, GLsizei count, GLenum type, const void *indices,
+        //        GLsizei instancecount);
       }
     }
   }
@@ -48,7 +51,7 @@ void OnRenderIter(flecs::iter& it) {
   glEnable(GL_BLEND);
 }
 Handle defaulthandle = 0;
-void RemoveOtherRenderer(entity self, ForwardRenderer& render) {
+void MakeRenderUnique(entity self, ForwardRenderer& render) {
   if (self.has<BaseRenderer>()) {
     Logger::get("Renderer")->warn("Found BaseRenderer, remove it");
     self.remove<BaseRenderer>();
@@ -81,6 +84,12 @@ ForwardRender::ForwardRender(world& ecs) {
   ecs.observer<ForwardRenderer>()
       .event(flecs::OnAdd)
       .event(flecs::OnSet)
-      .each(RemoveOtherRenderer);
+      .each(MakeRenderUnique);
 }
 MOD_END(ForwardRenderModule)
+
+// so the basic sequence
+// shadow map  --> to frame buffer
+// forward render --> to frame buffer
+// post process --> handling the frame buffer
+// blit to screen--> to screen

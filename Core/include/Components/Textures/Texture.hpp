@@ -17,3 +17,16 @@ struct TextureHandle {
   unsigned int type{};
   std::string name{};
 };
+
+// PBR Warpped
+struct Material {
+  Handle baseColor{};
+
+  Handle metallic_Roughness{};
+
+  Handle normal{};
+
+  Handle occulusion{};
+
+  Handle emissive{};
+};

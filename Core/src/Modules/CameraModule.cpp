@@ -153,7 +153,7 @@ CameraModule::CameraModule(world &ecs) {
       });
 
   ecs.system<CameraComponent, const InputController>("OnCameraUpdate")
-      .kind(flecs::PostLoad)
+      .kind(flecs::PreUpdate)
       .each(OnCameraUpdate);
   ecs.system<CameraComponent>("CameraDebug")
       .kind(flecs::PreUpdate)

@@ -40,6 +40,10 @@ struct FrameBuffer {
   Handle depthHandle{};
 };
 
+struct ShadowMap{
+  Handle shadowProgram{};
+};
+
 struct GBuffer {
   Handle handle{};
 

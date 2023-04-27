@@ -97,7 +97,7 @@ class FileWatcherModule : public LazySingleTon<FileWatcherModule> {
  private:
   static WrappedHandle wrapHandle(Handle handle, RecordType type);
 
-  std::filesystem::file_time_type getFileLastModified(std::string file);
+  static std::filesystem::file_time_type getFileLastModified(const std::string& file);
 
  private:
   Relation<std::string> mFiles;      // maps of file path and uid
