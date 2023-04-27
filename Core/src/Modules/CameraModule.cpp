@@ -13,21 +13,19 @@
 #include "InputComponents.hpp"
 #include "Logger.hpp"
 #include "OpenGLApp.hpp"
+#include "RenderComp.hpp"
 
+/*
 struct PerFrameData {
   glm::mat4 view;
   glm::mat4 projection;
   glm::vec4 cameraPos;
 };
+*/
 
-using namespace Monkey::Component;
 MOD_BGN(Camera)
+using namespace Component;
 CamSetting camSetting;
-
-// missing 3 values
-// deltaSeconds  // so many ways to handle this
-// width height  // i don't want to use glfw here
-// ratio        // width / height
 
 glm::mat4 getViewMatrix(glm::vec3 position, glm::quat Orientation) {
   const glm::mat4 t = glm::translate(glm::mat4(1.0f), -position);
@@ -115,6 +113,30 @@ void OnCameraUpdate(flecs::entity e, CameraComponent &cameraComponent,
       cameraComponent.moveSpeed * static_cast<float>(deltaSeconds);
 }
 
+void PerFrameDataUpdate(CameraComponent &camComp,
+                        PerFrameDataComp &perFrameData) {
+  // mvp matrices should only be working with current active camera which is the
+  // real view locations other useage need to upload by it self
+  if (camComp.isActiveCamera == false) return;
+  int width, height;
+  OpenGLApp::GetInstance()->GetWindowSize(width, height);
+
+  perFrameData.view =
+      getViewMatrix(camComp.v3Position.value, camComp.Orientation);
+  perFrameData.projection =
+      glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
+  perFrameData.cameraPos = glm::vec4(camComp.v3Position.value, 1.0f);
+  // TODO: update buffer
+  /*  glNamedBufferSubData(uiBufferHandle, 0, sizePerFrameDataComp,
+                         perFrameData);*/
+}
+
+void PerFrameDataCompInit(PerFrameDataComp &perFrameData) {
+  perFrameData.view = glm::mat4(1.0f);
+  perFrameData.projection = glm::mat4(1.0f);
+  perFrameData.cameraPos = glm::vec4(0.0f);
+}
+
 void CameraUI(flecs::entity e, CameraComponent &cameraComponent) {
   Begin(e.name());
   Draw(cameraComponent);
@@ -152,9 +174,18 @@ CameraModule::CameraModule(world &ecs) {
             cameraComponent.v3Position.value.z);
       });
 
+  /*  ecs.observer<PerFrameDataComp>()
+        .event(flecs::OnAdd)
+        .each(PerFrameDataCompInit);*/
+
   ecs.system<CameraComponent, const InputController>("OnCameraUpdate")
       .kind(flecs::PreUpdate)
       .each(OnCameraUpdate);
+  // now merge the perframe data to cameracomponent
+  ecs.system<CameraComponent, PerFrameDataComp>("PerFrameDataUpdate")
+      .kind(flecs::PreUpdate)
+      .each(PerFrameDataUpdate);
+
   ecs.system<CameraComponent>("CameraDebug")
       .kind(flecs::PreUpdate)
       .each(CameraUI);

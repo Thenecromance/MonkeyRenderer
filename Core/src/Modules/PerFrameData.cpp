@@ -55,22 +55,17 @@ MOD_BGN(PerFrameData)
 //}
 #pragma endregion
 
-glm::mat4 getViewMatrix(glm::vec3 position, glm::quat Orientation);
-
-//buggged
+// buggged
 void PerframeDataUpdateSystem(CameraComponent& camComp) {
   int width, height;
   OpenGLApp::GetInstance()->GetWindowSize(width, height);
 
-  const glm::mat4 view =
-      getViewMatrix(camComp.v3Position.value, camComp.Orientation);
   const glm::mat4 projection =
       glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
 }
 
 // perframe data buffer
-void CreateBuffer(flecs::iter it, size_t i,
-                  PerFrameDataHandle& perframeDataBuffer) {
+void CreateBuffer(PerFrameDataHandle& perframeDataBuffer) {
   glCreateBuffers(1, &perframeDataBuffer.handle);
   glNamedBufferStorage(perframeDataBuffer.handle, sizePerFrameDataComp, nullptr,
                        GL_DYNAMIC_STORAGE_BIT);
@@ -79,6 +74,8 @@ void CreateBuffer(flecs::iter it, size_t i,
   // size);
   glBindBufferRange(GL_UNIFORM_BUFFER, 0, perframeDataBuffer.handle, 0,
                     sizePerFrameDataComp);
+  // glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data);
+ 
 }
 
 PerFrameDataModule::PerFrameDataModule(world& ecs) {

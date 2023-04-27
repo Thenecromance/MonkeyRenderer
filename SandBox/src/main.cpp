@@ -366,9 +366,8 @@ int main() {
 
   Core::GetInstance()->EnableRest();
   Core::GetInstance()
-      ->Import<Module::InputModule>()        // input operation
-      .Import<Module::CameraModule>()        // camera operation
-      .Import<Module::PerFrameDataModule>()  // update perframe data
+      ->Import<Module::InputModule>()  // input operation
+      .Import<Module::CameraModule>()  // camera operation
       .Import<TransformModule>()
       .Import<ProgramModule>()  // shader program loader
       .Import<MeshModule>()

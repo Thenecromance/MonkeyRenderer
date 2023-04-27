@@ -4,14 +4,13 @@
 
 #include "CommonDef.hpp"
 
-struct PerFrameData {
+COMP_BGN(RenderComp)
+struct PerFrameDataComp {
   glm::mat4 view;
-  glm::mat4 proj;
+  glm::mat4 projection;
   glm::vec4 cameraPos;
-
-  unsigned int handle{};
 };
-
+SIZE_OF(PerFrameDataComp);
 struct BaseRenderer {
   Handle handle{};
   Handle vao{};  // vao should not be here
@@ -40,7 +39,7 @@ struct FrameBuffer {
   Handle depthHandle{};
 };
 
-struct ShadowMap{
+struct ShadowMap {
   Handle shadowProgram{};
 };
 
@@ -61,3 +60,4 @@ struct DrawIndirectCommand {
   unsigned int baseVertex;
   unsigned int baseInstance;
 };
+COMP_END(RenderComp)
