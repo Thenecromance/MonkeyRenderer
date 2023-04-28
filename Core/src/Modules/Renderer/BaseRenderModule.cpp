@@ -2,9 +2,10 @@
 #include <glad/glad.h>
 
 #include "BaseRenederModule.hpp"
-#include "Components/Renderer/RenderComp.hpp"
+#include "RenderComp.hpp"
 #include "Marcos/Marcos.hpp"
 MOD_BGN(BaseRender)
+using namespace Component;
 // void OnRender(entity e, BaseRenderer& render, PerFrameData& data) {
 //   // glNamedBufferSubData(data.handle, 0,
 //   //                      sizeof(PerFrameData) - sizeof(unsigned int),
@@ -24,7 +25,7 @@ MOD_BGN(BaseRender)
 
 // }
 
-void OnBaseRenderer(entity e, BaseRenderer& render, PerFrameData& data) {
+void OnBaseRenderer(entity e, BaseRenderer& render) {
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
 
@@ -49,7 +50,7 @@ void RemoveOtherRenderer(entity self, BaseRenderer& render) {
 BaseRender::BaseRender(world& ecs) {
   ecs.module<BaseRender>();
 
-  ecs.system<BaseRenderer, PerFrameData>("OnBaseRenderer")
+  ecs.system<BaseRenderer>("OnBaseRenderer")
       .kind(flecs::OnStore)
       .each(OnBaseRenderer);
 

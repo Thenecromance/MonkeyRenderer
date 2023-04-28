@@ -5,8 +5,9 @@
 #include <imgui.h>
 
 #include "Logger.hpp"
-#include "renderComp.hpp"
+#include "RenderComp.hpp"
 MOD_BGN(PostProcessModule)
+using namespace Component;
 void PostProcessInit(flecs::iter& it, size_t i, PostProcess& process) {
   // full screen quad
   float quadVertices[] = {

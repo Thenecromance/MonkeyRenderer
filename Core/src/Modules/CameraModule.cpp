@@ -5,7 +5,7 @@
 #include "CameraModule.hpp"
 
 #include <flecs.h>
-#include <glfw/glfw3.h>
+#include <glad/glad.h>
 #include <imgui.h>
 
 #include "CameraComponent.hpp"
@@ -14,6 +14,7 @@
 #include "Logger.hpp"
 #include "OpenGLApp.hpp"
 #include "RenderComp.hpp"
+#include "glfw/glfw3.h"
 
 /*
 struct PerFrameData {
@@ -113,30 +114,6 @@ void OnCameraUpdate(flecs::entity e, CameraComponent &cameraComponent,
       cameraComponent.moveSpeed * static_cast<float>(deltaSeconds);
 }
 
-void PerFrameDataUpdate(CameraComponent &camComp,
-                        PerFrameDataComp &perFrameData) {
-  // mvp matrices should only be working with current active camera which is the
-  // real view locations other useage need to upload by it self
-  if (camComp.isActiveCamera == false) return;
-  int width, height;
-  OpenGLApp::GetInstance()->GetWindowSize(width, height);
-
-  perFrameData.view =
-      getViewMatrix(camComp.v3Position.value, camComp.Orientation);
-  perFrameData.projection =
-      glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
-  perFrameData.cameraPos = glm::vec4(camComp.v3Position.value, 1.0f);
-  // TODO: update buffer
-  /*  glNamedBufferSubData(uiBufferHandle, 0, sizePerFrameDataComp,
-                         perFrameData);*/
-}
-
-void PerFrameDataCompInit(PerFrameDataComp &perFrameData) {
-  perFrameData.view = glm::mat4(1.0f);
-  perFrameData.projection = glm::mat4(1.0f);
-  perFrameData.cameraPos = glm::vec4(0.0f);
-}
-
 void CameraUI(flecs::entity e, CameraComponent &cameraComponent) {
   Begin(e.name());
   Draw(cameraComponent);
@@ -145,6 +122,7 @@ void CameraUI(flecs::entity e, CameraComponent &cameraComponent) {
 }
 
 CameraModule::CameraModule(world &ecs) {
+  PerFrameDataModule(ecs);
   ecs.import <CameraModule>();
   Logger::get("Module")->trace("{} Loaded", __FUNCTION__);
 
@@ -172,23 +150,48 @@ CameraModule::CameraModule(world &ecs) {
             cameraComponent.v3Position.value.x,
             cameraComponent.v3Position.value.y,
             cameraComponent.v3Position.value.z);
-      });
 
-  /*  ecs.observer<PerFrameDataComp>()
-        .event(flecs::OnAdd)
-        .each(PerFrameDataCompInit);*/
+        e.add<PerFrameDataComp>();
+      });
 
   ecs.system<CameraComponent, const InputController>("OnCameraUpdate")
       .kind(flecs::PreUpdate)
       .each(OnCameraUpdate);
-  // now merge the perframe data to cameracomponent
-  ecs.system<CameraComponent, PerFrameDataComp>("PerFrameDataUpdate")
-      .kind(flecs::PreUpdate)
-      .each(PerFrameDataUpdate);
 
   ecs.system<CameraComponent>("CameraDebug")
       .kind(flecs::PreUpdate)
       .each(CameraUI);
 }
 
+void PerFrameDataInit(PerFrameDataComp &comp) {
+  glCreateBuffers(1, &comp.buffer);
+  glNamedBufferStorage(comp.buffer, sizePerFrameDataComp - sizeof(Handle),
+                       nullptr, GL_DYNAMIC_STORAGE_BIT);
+  glBindBufferRange(GL_UNIFORM_BUFFER, 0, comp.buffer, 0,
+                    sizePerFrameDataComp - sizeof(Handle));
+}
+void PerFrameDataUpdate(PerFrameDataComp &comp,
+                        const CameraComponent &camComp) {
+  //  if (camComp.isActiveCamera == false)
+  //    return;
+
+  int width, height;
+  OpenGLApp::GetInstance()->GetWindowSize(width, height);
+  comp.view = getViewMatrix(camComp.v3Position.value, camComp.Orientation);
+  comp.projection =
+      glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
+  comp.cameraPos = glm::vec4(camComp.v3Position.value, 1.0f);
+  glNamedBufferSubData(comp.buffer, 0, sizePerFrameDataComp - sizeof(Handle),
+                       &comp);
+}
+
+void CameraModule::PerFrameDataModule(world &ecs) {
+  ecs.component<PerFrameDataComp>();
+
+  ecs.observer<PerFrameDataComp>().event(flecs::OnAdd).each(PerFrameDataInit);
+  ecs.system<PerFrameDataComp, const CameraComponent>(
+         "PerFrameDataUpdateSystem")
+      .kind(flecs::PreUpdate)
+      .each(PerFrameDataUpdate);
+}
 MOD_END(Camera)

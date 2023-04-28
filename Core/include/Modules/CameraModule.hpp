@@ -13,6 +13,9 @@ MOD_BGN(Camera)
 class CameraModule {
  public:
   explicit CameraModule(world &ecs);
+  
+ private:
+  void PerFrameDataModule(world& ecs) ;
 };
 
 MOD_END(Camera)

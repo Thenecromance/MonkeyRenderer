@@ -9,8 +9,11 @@ struct PerFrameDataComp {
   glm::mat4 view;
   glm::mat4 projection;
   glm::vec4 cameraPos;
+  
+  Handle buffer{};
 };
 SIZE_OF(PerFrameDataComp);
+
 struct BaseRenderer {
   Handle handle{};
   Handle vao{};  // vao should not be here
