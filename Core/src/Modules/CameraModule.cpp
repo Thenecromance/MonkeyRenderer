@@ -143,14 +143,9 @@ CameraModule::CameraModule(world &ecs) {
         cameraComponent.moveSpeed = glm::vec3(0.0f);
         Logger::get("MonkeyTrace")
             ->info("CameraComponent added to entity {}", e.name());
+        e.add<PerFrameDataComp>();
       })
       .on_set([](flecs::entity e, CameraComponent &cameraComponent) {
-        Logger::get<CameraModule>()->info(
-            "{} add Component and set  Position: {} {} {}", e.name(),
-            cameraComponent.v3Position.value.x,
-            cameraComponent.v3Position.value.y,
-            cameraComponent.v3Position.value.z);
-
         e.add<PerFrameDataComp>();
       });
 
@@ -172,11 +167,11 @@ void PerFrameDataInit(PerFrameDataComp &comp) {
 }
 void PerFrameDataUpdate(PerFrameDataComp &comp,
                         const CameraComponent &camComp) {
-  //  if (camComp.isActiveCamera == false)
-  //    return;
+  if (camComp.isActiveCamera == false) return;
 
   int width, height;
   OpenGLApp::GetInstance()->GetWindowSize(width, height);
+
   comp.view = getViewMatrix(camComp.v3Position.value, camComp.Orientation);
   comp.projection =
       glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);

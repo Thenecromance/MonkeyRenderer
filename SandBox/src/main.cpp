@@ -84,7 +84,10 @@ void CreateCamera(world &ecs) {
   glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
   ecs.entity("MainCamera")
       .set<Component::CameraComponent>(
-          {position, glm::lookAt(position, target, up), up})
+          {.v3Position = {position},
+           .Orientation = glm::lookAt(position, target, up),
+           .up = up,
+           .isActiveCamera = true})
       .add<Component::InputController>();
 }
 

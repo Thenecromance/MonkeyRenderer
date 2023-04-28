@@ -15,7 +15,7 @@ class CameraModule {
   explicit CameraModule(world &ecs);
   
  private:
-  void PerFrameDataModule(world& ecs) ;
+  static void PerFrameDataModule(world& ecs) ;
 };
 
 MOD_END(Camera)

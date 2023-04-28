@@ -17,34 +17,34 @@ MOD_BGN(ForwardRenderModule)
 
 using namespace Component;
 
-
-void OnRenderIter(flecs::iter& it) {
+void OnRenderIter(flecs::iter& it, size_t i, ForwardRenderer& renderer) {
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
-  for (auto i : it) {
-    auto target = it.entity(i);
-    const auto mesh = target.get<Mesh>();
-    const auto texture = target.get<TextureHandle>();
-    const auto transform = target.get<Transform>();
-    const auto renderer = target.get<ForwardRenderer>();
 
-    glUseProgram(renderer->handle);
-    // update Texture
-    {
-      if (texture) glBindTextures(0, 1, &texture->handle);
-    }
+  // here need to render to a frame buffer , then blit to screen with other
+  // render pass
 
-    {
-      if (mesh) {
-        glBindVertexArray(mesh->vao);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mesh->Vertices);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, transform->Matrices);
-        glDrawElementsInstanced(GL_TRIANGLES,
-                                static_cast<GLsizei>(mesh->numIndices),
-                                GL_UNSIGNED_INT, nullptr, 1);
-        //        (GLenum mode, GLsizei count, GLenum type, const void *indices,
-        //        GLsizei instancecount);
-      }
+  auto target = it.entity(i);
+  const auto mesh = target.get<Mesh>();
+  const auto texture = target.get<TextureHandle>();
+  const auto transform = target.get<Transform>();
+
+  glUseProgram(renderer.handle);
+  // update Texture
+  {
+    if (texture) glBindTextures(0, 1, &texture->handle);
+  }
+
+  {
+    if (mesh) {
+      glBindVertexArray(mesh->vao);
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mesh->Vertices);
+      glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, transform->Matrices);
+      glDrawElementsInstanced(GL_TRIANGLES,
+                              static_cast<GLsizei>(mesh->numIndices),
+                              GL_UNSIGNED_INT, nullptr, 1);
+      //        (GLenum mode, GLsizei count, GLenum type, const void *indices,
+      //        GLsizei instancecount);
     }
   }
 
@@ -72,7 +72,7 @@ ForwardRender::ForwardRender(world& ecs) {
   // use iter to draw
   ecs.system<ForwardRenderer>("ForwardRenderSystem")
       .kind(flecs::OnUpdate)
-      .iter(OnRenderIter);
+      .each(OnRenderIter);
 
   auto e = ecs.entity("ForwardDefaultProgram")
                .set<ShaderFile>({
