@@ -1,9 +1,10 @@
 #include "GridModule.hpp"
 
-#include <flecs.h>
+// #include <flecs.h>
 #include <glad/glad.h>
 #include <imgui.h>
 
+#include <Phases.hpp>
 #include <iostream>
 
 #include "CommonDef.hpp"
@@ -39,7 +40,7 @@ GridModule::GridModule(world& ecs) {
   ecs.module<GridModule>();
   ecs.component<GridComponent>().member<Handle>("handle");
   ecs.system<const GridComponent, Program>("GridUpdater")
-      .kind(flecs::OnStore)
+      .kind(Phase::RenderStage)
       .each(OnUpdateGridRender);
 
   ecs.observer<Component::GridComponent, Program>()

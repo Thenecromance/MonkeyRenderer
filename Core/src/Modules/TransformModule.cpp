@@ -1,9 +1,9 @@
 
 #include "TransformModule.hpp"
 
-#include <flecs.h>
 #include <glad/glad.h>
 
+#include <Phases.hpp>
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 
@@ -69,6 +69,7 @@ TransformModule::TransformModule(world& ecs) {
   ecs.module<TransformModule>();
   LoadComponent(ecs);
   ecs.system<Monkey::Component::Transform>("TransformUpdate")
+      .kind(Phase::LogicUpdate)
       .each(TransformSystem);
 
   ecs.observer<Transform>().event(flecs::OnAdd).each(InitializeTransform);

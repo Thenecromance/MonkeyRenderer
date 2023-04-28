@@ -1,6 +1,6 @@
 #include "InputModule.hpp"
 
-#include <flecs.h>
+#include <Phases.hpp>
 
 #include "InputComponents.hpp"
 #include "InputHandler.hpp"
@@ -39,7 +39,6 @@ InputModule::InputModule(world &ecs) {
   Logger::get("Module")->trace("{} Loaded", __FUNCTION__);
 
   ecs.component<KeyBoard>().member<short int>("keyPressed", KEY_SIZE);
-
   ecs.component<CursorPos>().member<double>("x").member<double>("y");
   ecs.component<MouseButton>().member<bool>("bPressed",
                                             eMouseButton::eButtonEnd);
@@ -54,19 +53,19 @@ InputModule::InputModule(world &ecs) {
       .member<ScrollButton>("scrollButton");
 
   ecs.system<KeyBoard>("OnHandleKeyBoard")
-      .kind(flecs::OnLoad)
+      .kind(Phase::PreFrame)
       .each(OnHandleKeyBoard);
   ecs.system<CursorPos>("OnHandleCursorPos")
-      .kind(flecs::OnLoad)
+      .kind(Phase::PreFrame)
       .each(OnHandleCursorPos);
   ecs.system<MouseButton>("OnHandleMouseButton")
-      .kind(flecs::OnLoad)
+      .kind(Phase::PreFrame)
       .each(OnHandleMouseButton);
   ecs.system<ScrollButton>("OnHandleScrollButton")
-      .kind(flecs::OnLoad)
+      .kind(Phase::PreFrame)
       .each(OnHandleScrollButton);
   ecs.system<InputController>("OnHandleInputController")
-      .kind(flecs::OnLoad)
+      .kind(Phase::PreFrame)
       .each(OnHandleInputController);
 }
 

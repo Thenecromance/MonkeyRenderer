@@ -4,7 +4,8 @@
 
 #include "CameraModule.hpp"
 
-#include <flecs.h>
+//#include <flecs.h>
+#include<Phases.hpp>
 #include <glad/glad.h>
 #include <imgui.h>
 
@@ -186,7 +187,7 @@ void CameraModule::PerFrameDataModule(world &ecs) {
   ecs.observer<PerFrameDataComp>().event(flecs::OnAdd).each(PerFrameDataInit);
   ecs.system<PerFrameDataComp, const CameraComponent>(
          "PerFrameDataUpdateSystem")
-      .kind(flecs::PreUpdate)
+      .kind(Phase::ImGuiRender)
       .each(PerFrameDataUpdate);
 }
 MOD_END(Camera)

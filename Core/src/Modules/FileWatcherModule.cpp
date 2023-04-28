@@ -185,7 +185,6 @@ void FileWatcherModule::OnUpdate() {
       mFileLastModified.at(file) = lastModified;
 
       // catch all handles which get effect from this file
-      
     }
   }
 }

@@ -4,7 +4,7 @@
 
 #include "AntiAliasingConfigModule.hpp"
 
-#include <flecs.h>
+#include <Phases.hpp>
 #include <glad/glad.h>
 #include <imgui.h>
 
@@ -32,7 +32,7 @@ AntiAliasingConfigModule::AntiAliasingConfigModule(world& ecs) {
   ecs.module<AntiAliasingConfigModule>();
 
   ecs.system<AntiAliasingConfig>("AntiAliasingConfigSystem")
-      .kind(flecs::PreFrame)
+      .kind(Phase::ImGuiRender)
       .each(UIUpdate);
 
   ecs.entity("AAConfig")

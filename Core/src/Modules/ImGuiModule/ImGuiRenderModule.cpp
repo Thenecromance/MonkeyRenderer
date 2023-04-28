@@ -3,12 +3,13 @@
 //
 #include "ImGuiRenderModule.hpp"
 
-#include <flecs.h>
+// #include <flecs.h>
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include <Phases.hpp>
 #include <glm/ext.hpp>
 
 #include "InputComponents.hpp"
@@ -44,7 +45,8 @@ void OnRender(const ImGuiBaseComp &comp, const Program &program) {
   const glm::mat4 orthoProjection = glm::ortho(L, R, B, T);
   glNamedBufferSubData(comp.perFrame_, 0, sizeof(glm::mat4),
                        glm::value_ptr(orthoProjection));
-//  glNamedBufferSubData (GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data)
+  //  glNamedBufferSubData (GLuint buffer, GLintptr offset, GLsizeiptr size,
+  //  const void *data)
   int width, height;
   /*glfwGetWindowSize((GLFWwindow *)OpenGLApp::GetInstance()->GetWindow(),
      &width, &height);*/
@@ -238,7 +240,9 @@ void ImGuiBaseRenderInit(flecs::iter &it, size_t i, ImGuiBaseComp &comp) {
   glVertexArrayAttribFormat(comp.vao_, 2, 4, GL_UNSIGNED_BYTE, GL_TRUE,
                             IM_OFFSETOF(ImDrawVert, col));
 
-  glVertexArrayAttribBinding(comp.vao_, 0, 0);/*(GLuint vaobj, GLuint attribindex, GLuint bindingindex);*/
+  glVertexArrayAttribBinding(
+      comp.vao_, 0,
+      0); /*(GLuint vaobj, GLuint attribindex, GLuint bindingindex);*/
   glVertexArrayAttribBinding(comp.vao_, 1, 0);
   glVertexArrayAttribBinding(comp.vao_, 2, 0);
 
@@ -251,11 +255,11 @@ ImGuiRenderer::ImGuiRenderer(world &ecs) {
   ecs.observer<ImGuiBaseComp>().event(flecs::OnAdd).each(ImGuiBaseRenderInit);
 
   ecs.system<InputController, ImGuiBaseComp>("System::ImGuiInputControl")
-      .kind(flecs::PostLoad)
+      .kind(Phase::PreCameraUpdated)
       .each(HandleInput);
 
   ecs.system<const InternalImGuiStart>("System::ImGuiNewFrame")
-      .kind(flecs::PreFrame)
+      .kind(Phase::PreFrame) //calling it in PreFrame just prevent the some other system to call it in wrong frames
       .each(NewFrame);
 
   ecs.system<const ImGuiBaseComp, const Program>("System::ImGuiRenderer")

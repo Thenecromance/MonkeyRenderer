@@ -38,6 +38,9 @@ void UpdateModelInfoTemp(const Mesh* model, const Position* pos,
   glNamedBufferSubData(model->hMatrices, 0, sizeof(mat4), value_ptr(m));*/
 }
 
+
+//deprecated ,using flecs::iter& will caused n^2 draw call , waste too much time
+//so for the final way , I should be use merge data and draw call
 void OnDefferedRender(flecs::iter& it) {
   for (auto i : it) {
     auto self = it.entity(i);

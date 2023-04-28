@@ -53,12 +53,6 @@ LightModule::LightModule(world& ecs) {
   ecs.system<PointLight>("PointLightUpdate")
       .kind(flecs::PostUpdate)
       .each(OnPointLightUpdate);
-  //  // render shadow map
-  //  ecs.system<ShadowMap>("ShadowMapUpdate")
-  //      .kind(flecs::PreStore)  // here can be move to post update
-  //      .each(ShadowMapUpdate);
-  //
-  //  ecs.entity("ShadowMapEntity").add<ShadowMap>().add<FrameBuffer>();
 
   ecs.system<PointLight>("PointLightUI").kind(flecs::PreUpdate).each(LightUI);
 }

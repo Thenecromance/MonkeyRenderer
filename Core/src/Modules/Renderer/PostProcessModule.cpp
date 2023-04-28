@@ -1,6 +1,6 @@
 #include "PostProcessModule.hpp"
 
-#include <flecs.h>
+#include <Phases.hpp>
 #include <glad/glad.h>
 #include <imgui.h>
 
@@ -101,7 +101,7 @@ PostProcessModule::PostProcessModule(world& ecs) {
   }
 
   ecs.system<PostProcess, FrameBuffer>("PostProcessOnRender")
-      .kind(flecs::PreStore)
+      .kind(Phase::ImGuiRender)
       .each(PostProcessOnRender);
 
   //  ecs.system<PostProcess, FrameBuffer>("BaseRenderSystem")

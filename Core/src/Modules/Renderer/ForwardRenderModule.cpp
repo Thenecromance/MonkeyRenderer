@@ -43,8 +43,8 @@ void OnRenderIter(flecs::iter& it, size_t i, ForwardRenderer& renderer) {
       glDrawElementsInstanced(GL_TRIANGLES,
                               static_cast<GLsizei>(mesh->numIndices),
                               GL_UNSIGNED_INT, nullptr, 1);
-      //        (GLenum mode, GLsizei count, GLenum type, const void *indices,
-      //        GLsizei instancecount);
+      // glDrawElementsInstanced (GLenum mode, GLsizei count, GLenum type,
+      // const void *indices,GLsizei instancecount);
     }
   }
 
@@ -88,8 +88,10 @@ ForwardRender::ForwardRender(world& ecs) {
 }
 MOD_END(ForwardRenderModule)
 
-// so the basic sequence
-// shadow map  --> to frame buffer
-// forward render --> to frame buffer
-// post process --> handling the frame buffer
-// blit to screen--> to screen
+// so now I need to implement a render pass system
+//  1. PerFrameData Updater
+//  2. ForwardRender System
+//  3. pbr bind system
+//  4. update lights
+//  5. update meshes
+//  6. blit to screen
