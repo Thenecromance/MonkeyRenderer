@@ -50,8 +50,15 @@ void OnRenderIter(flecs::iter& it, size_t i, ForwardRenderer& renderer) {
 
   glEnable(GL_BLEND);
 }
-Handle defaulthandle = 0;
-void MakeRenderUnique(entity self, ForwardRenderer& render) {
+
+/// @brief for make each meshes in render unique in case the same mesh got
+/// rendered multiple times
+/// @param it
+/// @param i
+/// @param render
+void MakeRendererUnique(flecs::iter& it, size_t i, ForwardRenderer& render) {
+  auto self = it.entity(i);
+
   if (self.has<BaseRenderer>()) {
     Logger::get("Renderer")->warn("Found BaseRenderer, remove it");
     self.remove<BaseRenderer>();
@@ -62,6 +69,11 @@ void MakeRenderUnique(entity self, ForwardRenderer& render) {
   }
 
   if (render.handle == 0) {
+    auto defaulthandle =
+        it.world()
+            .lookup("::Monkey::Module::ForwardRender::ForwardDefaultProgram")
+            .get<Program>()
+            ->handle;
     render.handle = defaulthandle;
   }
 }
@@ -74,17 +86,15 @@ ForwardRender::ForwardRender(world& ecs) {
       .kind(flecs::OnUpdate)
       .each(OnRenderIter);
 
-  auto e = ecs.entity("ForwardDefaultProgram")
-               .set<ShaderFile>({
-                   R"(Shaders\ForwardRender\Default.vert)",
-                   R"(Shaders\ForwardRender\Default.frag)",
-               });
-  defaulthandle = e.get<Program>()->handle;
-
+  ecs.entity("ForwardDefaultProgram")
+      .set<ShaderFile>({
+          R"(Shaders\ForwardRender\Default.vert)",
+          R"(Shaders\ForwardRender\Default.frag)",
+      });
   ecs.observer<ForwardRenderer>()
       .event(flecs::OnAdd)
       .event(flecs::OnSet)
-      .each(MakeRenderUnique);
+      .each(MakeRendererUnique);
 }
 MOD_END(ForwardRenderModule)
 

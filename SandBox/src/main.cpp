@@ -335,8 +335,8 @@ void MeshTest(world &ecs) {
               {.path = R"(data\rubber_duck\textures\Duck_baseColor.png)"})
           .add<Transform>();
 
-  for (int x = 0; x < 50; ++x) {
-    for (int y = 0; y < 20; ++y) {
+  for (int x = 0; x < 5; ++x) {
+    for (int y = 0; y < 2; ++y) {
       std::string name =
           "RubberDuck_x" + std::to_string(x) + "y" + std::to_string(y);
       ecs.entity(name.c_str())

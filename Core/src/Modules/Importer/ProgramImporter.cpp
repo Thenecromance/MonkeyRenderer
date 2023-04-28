@@ -92,7 +92,7 @@ void ShaderOnSet(flecs::iter& it, size_t i, Shader& shader) {
     Logger::get<ProgramModule>()->error("Program link failed");
     return;
   }
-  
+
   FileWatcherModule::GetInstance()->AddProgram(handle, handles);
   self.set<Program>({handle});
 }

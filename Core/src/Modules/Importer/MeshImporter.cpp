@@ -126,7 +126,8 @@ void LoadMeshDataToGPU(flecs::entity e, MeshData& data) {
 }
 
 void InitMesh(flecs::entity self, Mesh& mesh) {
-//  Logger::get<MeshModule>()->trace("{} Initalize Mesh", self.name().c_str());
+  //  Logger::get<MeshModule>()->trace("{} Initalize Mesh",
+  //  self.name().c_str());
   if (self.has<BaseRenderer>() || self.has<ForwardRenderer>() ||
       self.has<DefferedRenderer>()) {
     return;

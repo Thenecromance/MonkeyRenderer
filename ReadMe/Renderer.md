@@ -36,3 +36,27 @@ static const flecs::entity_t BlitRender         = flecs::PostFrame;  // merge ea
 ```
 
 in current system design, the real PreFrame operation and PostFrame already implenment in Core::OnUpdate() so in flecs default pipeline, I got another free PreFrame and PostFrame.
+
+## Frame flow graph
+
+```mermaid
+graph TB
+
+PerFrameData(Perframe data update)
+Light(Light Update)
+ForwardRender(Forward Render)
+DefferedRender(Deffered Render)
+Blit(Blit to screen)
+PostProcess(Post Process)
+
+PerFrameData-->Light
+Light-->ForwardRender 
+Light-->DefferedRender
+
+ForwardRender-->PostProcess
+DefferedRender-->PostProcess
+
+
+PostProcess-->Blit
+
+```

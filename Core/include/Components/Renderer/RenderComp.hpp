@@ -1,9 +1,9 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <string>
 
 #include "CommonDef.hpp"
-#include<string>
 COMP_BGN(RenderComp)
 struct PerFrameDataComp {
   glm::mat4 view;
@@ -16,8 +16,8 @@ SIZE_OF(PerFrameDataComp);
 
 struct BaseRenderer {
   Handle handle{};
-  
-  Handle vao {} ;
+
+  Handle vao{};
   unsigned int drawType{0x0004};
 };
 SIZE_OF(BaseRenderer);
@@ -77,4 +77,7 @@ struct ShadowMapComp {
   std::string file_path{};
   Handle handle{};
 };
+SIZE_OF(ShadowMapComp);
+
+
 COMP_END(RenderComp)
