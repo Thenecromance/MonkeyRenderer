@@ -47,9 +47,11 @@ GridModule::GridModule(world& ecs) {
       .event(flecs::OnRemove)
       .each(UnLoadGrid);
 
-  auto grid = ecs.entity("Grid").add<GridComponent>().set<ShaderFile>(
-      {"Shaders/Grid/grid.vs", "Shaders/Grid/grid.fs"});
-
+  // clang-format off
+  auto grid = ecs.entity("Grid")
+                  .add<GridComponent>()
+                  .set<ShaderFile>({"Shaders/Grid/grid.vs", "Shaders/Grid/grid.fs"});
+  // clang-format on
   glCreateVertexArrays(1, &grid.get_ref<GridComponent>()->vao);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }

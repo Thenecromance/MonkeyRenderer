@@ -8,4 +8,9 @@ class BaseRender {
  public:
   BaseRender(world& ecs);
 };
+
+class FrameBufferModule {
+ public:
+  FrameBufferModule(world& ecs);
+};
 MOD_END(BaseRenderModule)

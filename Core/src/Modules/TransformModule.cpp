@@ -14,13 +14,6 @@ MOD_BGN(TransformModule)
 
 using namespace Component;
 
-// struct GroupedMatrices {
-//   Handle groupedMatHandle;
-//   glm::mat4 matirices[10000];  // in this way it might be waste lots of
-//   memory
-//   //  std::vector<glm::mat4> matrices;
-// };
-
 // TODO: finish the transform system, this just a basic demo ver
 void TransformSystem(entity self, Monkey::Component::Transform& transform) {
   auto scale_ = glm::vec3(1.0f);
@@ -52,27 +45,41 @@ void InitializeTransform(flecs::entity e, Transform& transform) {
 }
 
 void LoadComponent(world& ecs) {
-  ecs.component<Transform>().member<Handle>("handle");
+  // clang-format off
+  ecs.component<Transform>()
+      .member<Handle>("handle");
 
-  ecs.component<Position>().member<float>("x").member<float>("y").member<float>(
-      "z");
+  ecs.component<Position>()
+      .member<float>("x")
+      .member<float>("y")
+      .member<float>("z");
+
   ecs.component<Rotation>()
       .member<float>("x")
       .member<float>("y")
       .member<float>("z")
       .member<float>("angle");
-  ecs.component<Scale>().member<float>("x").member<float>("y").member<float>(
-      "z");
+
+  ecs.component<Scale>()
+      .member<float>("x")
+      .member<float>("y")
+      .member<float>("z");
+  // clang-format on
 }
 
 TransformModule::TransformModule(world& ecs) {
   ecs.module<TransformModule>();
   LoadComponent(ecs);
+
+  // clang-format off
   ecs.system<Monkey::Component::Transform>("TransformUpdate")
       .kind(Phase::LogicUpdate)
       .each(TransformSystem);
 
-  ecs.observer<Transform>().event(flecs::OnAdd).each(InitializeTransform);
+  ecs.observer<Transform>()
+      .event(flecs::OnAdd)
+      .each(InitializeTransform);
+  // clang-format on
 }
 
 MOD_END(TransformModule)

@@ -7,6 +7,7 @@
 
 #include "FileWatcherModule.hpp"
 #include "Logger.hpp"
+#include "Phases.hpp"
 #include "ProgramModule.hpp"
 #include "ShaderComp.hpp"
 
@@ -28,7 +29,6 @@ bool CheckLinkStatus(Handle handle) {
 void ShaderFileOnSet(flecs::iter& it, size_t i, ShaderFile& files) {
   auto self = it.entity(i);
   self.set<Shader>(files.Compile());
-  self.disable<ShaderFile>();
 }
 void ShaderFileOnRemove(flecs::iter&, size_t, ShaderFile& files) {}
 
@@ -93,7 +93,7 @@ void ShaderOnSet(flecs::iter& it, size_t i, Shader& shader) {
     return;
   }
 
-  FileWatcherModule::GetInstance()->AddProgram(handle, handles);
+  //  FileWatcherModule::GetInstance()->AddProgram(handle, handles);
   self.set<Program>({handle});
 }
 
@@ -127,4 +127,144 @@ ProgramModule::ProgramModule(world& ecs) {
   { ecs.observer<Program>().event(flecs::OnRemove).each(ProgramOnRemove); }
 }
 
+void AddShaderWatcher(flecs::entity self, ShaderFileWatcher& wathcer) {
+  auto ShaderFiles = self.get<ShaderFile>();
+  if (!ShaderFiles->vertexShader.empty()) {
+    wathcer.Has_vertexShader = true;
+    wathcer.vertexShader =
+        std::filesystem::last_write_time(ShaderFiles->vertexShader)
+            .time_since_epoch()
+            .count();
+  }
+  if (!ShaderFiles->fragmentShader.empty()) {
+    wathcer.Has_fragmentShader = true;
+    wathcer.fragmentShader =
+        std::filesystem::last_write_time(ShaderFiles->fragmentShader)
+            .time_since_epoch()
+            .count();
+  }
+  if (!ShaderFiles->geometryShader.empty()) {
+    wathcer.Has_geometryShader = true;
+    wathcer.geometryShader =
+        std::filesystem::last_write_time(ShaderFiles->geometryShader)
+            .time_since_epoch()
+            .count();
+  }
+  if (!ShaderFiles->tessellationControlShader.empty()) {
+    wathcer.Has_tessellationControlShader = true;
+    wathcer.tessellationControlShader =
+        std::filesystem::last_write_time(ShaderFiles->tessellationControlShader)
+            .time_since_epoch()
+            .count();
+  }
+  if (!ShaderFiles->tessellationEvaluationShader.empty()) {
+    wathcer.Has_tessellationEvaluationShader = true;
+    wathcer.tessellationEvaluationShader =
+        std::filesystem::last_write_time(
+            ShaderFiles->tessellationEvaluationShader)
+            .time_since_epoch()
+            .count();
+  }
+  if (!ShaderFiles->computeShader.empty()) {
+    wathcer.Has_computeShader = true;
+    wathcer.tessellationControlShader =
+        std::filesystem::last_write_time(ShaderFiles->computeShader)
+            .time_since_epoch()
+            .count();
+  }
+}
+
+void ShaderFileWatcherOnUpdate(flecs::entity self, ShaderFileWatcher& watcher,
+                               ShaderFile& files, Shader& shader) {
+  auto GetFileLastTimeWrite = [](const std::string& file) {
+    return std::filesystem::last_write_time(file).time_since_epoch().count();
+  };
+  // clang-format off
+  bool NeedCompile = false;
+  if ((watcher.Has_vertexShader &&
+       watcher.vertexShader != GetFileLastTimeWrite(files.vertexShader))) {
+    watcher.vertexShader = GetFileLastTimeWrite(files.vertexShader);
+    NeedCompile = true;
+  }
+
+  if ((watcher.Has_fragmentShader &&
+       watcher.fragmentShader != GetFileLastTimeWrite(files.fragmentShader))) {
+    watcher.fragmentShader = GetFileLastTimeWrite(files.fragmentShader);
+    NeedCompile = true;
+  }
+  if ((watcher.Has_geometryShader &&
+       watcher.geometryShader != GetFileLastTimeWrite(files.geometryShader))) {
+    watcher.geometryShader = GetFileLastTimeWrite(files.geometryShader);
+    NeedCompile = true;
+  }
+  if ((watcher.Has_tessellationControlShader &&
+       watcher.tessellationControlShader !=
+           GetFileLastTimeWrite(files.tessellationControlShader))) {
+    watcher.tessellationControlShader =
+        GetFileLastTimeWrite(files.tessellationControlShader);
+    NeedCompile = true;
+  }
+  if ((watcher.Has_tessellationEvaluationShader &&
+       watcher.tessellationEvaluationShader !=
+           GetFileLastTimeWrite(files.tessellationEvaluationShader))) {
+    watcher.tessellationEvaluationShader =
+        GetFileLastTimeWrite(files.tessellationEvaluationShader);
+    NeedCompile = true;
+  }
+  if ((watcher.Has_computeShader &&
+       watcher.computeShader != GetFileLastTimeWrite(files.computeShader))) {
+    watcher.computeShader = GetFileLastTimeWrite(files.computeShader);
+    NeedCompile = true;
+  };
+  // clang-format on
+
+  if (NeedCompile)
+    // so far in this method, once the shader file is changed,
+    //  all of the other shader file will also be recompiled,that's not what I
+    //  want such as(I changed fragment shader, but the vertex shader will also
+    //  be recompiled)
+    self.set<Shader>(files.Compile(shader));
+}
+ShaderHotReloadModule::ShaderHotReloadModule(world& ecs) {
+  ecs.import <ShaderHotReloadModule>();
+  LoadComponent(ecs);
+  // hook the ShaderFile and
+  ecs.observer<ShaderFile>()
+      //      .event(flecs::OnAdd) // should not use this
+      .event(flecs::OnSet)
+      .each([](flecs::entity self, ShaderFile& files) {
+        self.add<ShaderFileWatcher>();
+      });
+
+  ecs.observer<ShaderFile>()
+      .event(flecs::OnRemove)
+      .each([](flecs::entity self, ShaderFile& files) {
+        //        self.add<ShaderFileWatcher>();
+        self.remove<ShaderFileWatcher>();
+      });
+  ecs.observer<ShaderFileWatcher>("ShaderWatcher")
+      .event(flecs::OnAdd)
+      .each(AddShaderWatcher);
+
+  ecs.system<ShaderFileWatcher, ShaderFile, Shader>("ShaderHotReloadSystem")
+      .kind(Phase::PreFrame)
+      .each(ShaderFileWatcherOnUpdate);
+}
+
+void ShaderHotReloadModule::LoadComponent(world& ecs) {
+  ecs.component<ShaderFileWatcher>()
+      .member<bool>("Has_vertexShader")
+      .member<bool>("Has_fragmentShader")
+      .member<bool>("Has_geometryShader")
+      .member<bool>("Has_tessellationControlShader")
+      .member<bool>("Has_tessellationEvaluationShader")
+      .member<bool>("Has_computeShader")
+
+      .member<long long>("vertexShader")
+      .member<long long>("fragmentShader")
+      .member<long long>("geometryShader")
+      .member<long long>("tessellationControlShader")
+      .member<long long>("tessellationEvaluationShader")
+      .member<long long>("computeShader");
+}
 MOD_END(ProgramModule)

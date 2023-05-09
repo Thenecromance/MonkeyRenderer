@@ -15,41 +15,58 @@ Shader ShaderFile::Compile() {
   if (!vertexShader.empty()) {
     result.vertexHandle =
         CompileShader(GL_VERTEX_SHADER, ReadSource(vertexShader));
-    FileWatcherModule::GetInstance()->AddShader(vertexShader,
-                                                result.vertexHandle);
   }
   if (!fragmentShader.empty()) {
     result.fragmentHandle =
         CompileShader(GL_FRAGMENT_SHADER, ReadSource(fragmentShader));
-    FileWatcherModule::GetInstance()->AddShader(fragmentShader,
-                                                result.fragmentHandle);
   }
   if (!geometryShader.empty()) {
     result.geometryHandle =
         CompileShader(GL_GEOMETRY_SHADER, ReadSource(geometryShader));
-    FileWatcherModule::GetInstance()->AddShader(geometryShader,
-                                                result.geometryHandle);
   }
   if (!tessellationControlShader.empty()) {
     result.tessellationControlHandle = CompileShader(
         GL_TESS_CONTROL_SHADER, ReadSource(tessellationControlShader));
-    FileWatcherModule::GetInstance()->AddShader(
-        tessellationControlShader, result.tessellationControlHandle);
   }
   if (!tessellationEvaluationShader.empty()) {
     result.tessellationEvaluationHandle = CompileShader(
         GL_TESS_EVALUATION_SHADER, ReadSource(tessellationEvaluationShader));
-    FileWatcherModule::GetInstance()->AddShader(
-        tessellationEvaluationShader, result.tessellationEvaluationHandle);
   }
   if (!computeShader.empty()) {
     result.computeHandle =
         CompileShader(GL_COMPUTE_SHADER, ReadSource(computeShader));
-    FileWatcherModule::GetInstance()->AddShader(computeShader,
-                                                result.computeHandle);
   }
 
   return result;
+}
+
+Shader ShaderFile::Compile(Shader& old) {
+  if (!vertexShader.empty()) {
+    CompileShader(GL_VERTEX_SHADER, ReadSource(vertexShader), old.vertexHandle);
+  }
+  if (!fragmentShader.empty()) {
+    CompileShader(GL_FRAGMENT_SHADER, ReadSource(fragmentShader),
+                  old.fragmentHandle);
+  }
+  if (!geometryShader.empty()) {
+    CompileShader(GL_GEOMETRY_SHADER, ReadSource(geometryShader),
+                  old.geometryHandle);
+  }
+  if (!tessellationControlShader.empty()) {
+    CompileShader(GL_TESS_CONTROL_SHADER, ReadSource(tessellationControlShader),
+                  old.tessellationControlHandle);
+  }
+  if (!tessellationEvaluationShader.empty()) {
+    CompileShader(GL_TESS_EVALUATION_SHADER,
+                  ReadSource(tessellationEvaluationShader),
+                  old.tessellationEvaluationHandle);
+  }
+  if (!computeShader.empty()) {
+    CompileShader(GL_COMPUTE_SHADER, ReadSource(computeShader),
+                  old.computeHandle);
+  }
+
+  return old;
 }
 
 std::string ShaderFile::ReadSource(const std::string& files) {
@@ -76,8 +93,9 @@ bool ShaderFile::CheckCompileStatus(Handle handle) {
   return true;
 }
 
-Handle ShaderFile::CompileShader(unsigned int type, const std::string& src) {
-  Handle handle = glCreateShader(type);
+Handle ShaderFile::CompileShader(unsigned int&& type, const std::string& src,
+                                 Handle handle /*= 0*/) {
+  if (handle == 0) handle = glCreateShader(type);
   auto data = src.c_str();
   glShaderSource(handle, 1, &data, nullptr);
   glCompileShader(handle);

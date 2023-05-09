@@ -5,6 +5,7 @@
 
 #include "CommonDef.hpp"
 COMP_BGN(RenderComp)
+
 struct PerFrameDataComp {
   glm::mat4 view;
   glm::mat4 projection;
@@ -23,7 +24,6 @@ struct BaseRenderer {
 SIZE_OF(BaseRenderer);
 
 struct ForwardRenderer {
-  Handle handle{};
   unsigned int drawType{0x0004};
 };
 SIZE_OF(ForwardRenderer);
@@ -43,12 +43,30 @@ struct PostProcess {
 };
 SIZE_OF(PostProcess);
 
+struct DrawIndirectCommand {
+  unsigned int count;
+  unsigned int instanceCount;
+  unsigned int firstIndex;
+  unsigned int baseVertex;
+  unsigned int baseInstance;
+};
+SIZE_OF(DrawIndirectCommand);
+
+#pragma region FrameBuffer Sections
+
 /// @brief frame buffer for advanced rendering operation
 struct FrameBuffer {
   Handle handle{};
 
   Handle colorHandle{};
   Handle depthHandle{};
+
+  int height{};
+  int width{};
+
+ public:
+  void Bind();
+  void Unbind();
 };
 SIZE_OF(FrameBuffer);
 
@@ -61,23 +79,43 @@ struct GBuffer {
   Handle AlbedoHandle{};
 
   Handle depthHandle{};
+
+  void Bind();
+  void Unbind();
 };
 SIZE_OF(GBuffer);
 
-struct DrawIndirectCommand {
-  unsigned int count;
-  unsigned int instanceCount;
-  unsigned int firstIndex;
-  unsigned int baseVertex;
-  unsigned int baseInstance;
-};
-SIZE_OF(DrawIndirectCommand);
-
-struct ShadowMapComp {
-  std::string file_path{};
+struct ShadowMap {
   Handle handle{};
-};
-SIZE_OF(ShadowMapComp);
 
+  Handle colorHandle{};
+  Handle depthHandle{};
+
+  int height{};
+  int width{};
+
+ public:
+  void Bind();
+  void Unbind();
+};
+SIZE_OF(ShadowMap);
+
+
+struct SSAO {
+  Handle handle{};
+
+  Handle colorHandle{};
+  Handle depthHandle{};
+
+  int height{};
+  int width{};
+
+ public:
+  void Bind();
+  void Unbind();
+};
+SIZE_OF(SSAO);
+
+#pragma endregion
 
 COMP_END(RenderComp)

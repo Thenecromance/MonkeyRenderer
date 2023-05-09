@@ -2,6 +2,8 @@
 // Created by Thenecromance on 2023/4/23.
 //
 
+#include "MeshModule.hpp"
+
 #include <assimp/cimport.h>
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
@@ -14,7 +16,6 @@
 
 #include "Logger.hpp"
 #include "MeshComp.hpp"
-#include "MeshModule.hpp"
 #include "Position.hpp"
 #include "RenderComp.hpp"
 
@@ -93,7 +94,7 @@ void LoadMeshDataToGPU(flecs::entity e, MeshData& data) {
                        data.Indices.data(), 0);
 
   glCreateBuffers(1, &mesh.Vertices);
-  glNamedBufferStorage(mesh.Vertices, data.Vertex.size() * sizeof(uint32_t),
+  glNamedBufferStorage(mesh.Vertices, data.Vertex.size() * sizeof(float),
                        data.Vertex.data(), 0);
 
   //  glCreateBuffers(1,&mesh.Indirect);
@@ -126,8 +127,6 @@ void LoadMeshDataToGPU(flecs::entity e, MeshData& data) {
 }
 
 void InitMesh(flecs::entity self, Mesh& mesh) {
-  //  Logger::get<MeshModule>()->trace("{} Initalize Mesh",
-  //  self.name().c_str());
   if (self.has<BaseRenderer>() || self.has<ForwardRenderer>() ||
       self.has<DefferedRenderer>()) {
     return;

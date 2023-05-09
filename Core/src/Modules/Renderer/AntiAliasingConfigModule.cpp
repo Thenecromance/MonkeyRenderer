@@ -4,9 +4,10 @@
 
 #include "AntiAliasingConfigModule.hpp"
 
-#include <Phases.hpp>
 #include <glad/glad.h>
 #include <imgui.h>
+
+#include <Phases.hpp>
 
 #include "glfw/glfw3.h"
 MOD_BGN(AntiAliasingConfigModule)
