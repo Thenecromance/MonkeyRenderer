@@ -1,5 +1,6 @@
 //
 #version 460 core
+#include <CommonHeader.h>
 
 layout (std140, binding = 0) uniform PerFrameData
 {
@@ -7,12 +8,7 @@ layout (std140, binding = 0) uniform PerFrameData
     mat4 proj;
     vec4 cameraPos;
 };
-struct PerVertex
-{
-    vec2 uv;
-    vec3 normal;
-    vec3 worldPos;
-};
+
 
 layout (location = 0) in PerVertex vtx;
 

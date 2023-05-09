@@ -71,13 +71,48 @@ Shader ShaderFile::Compile(Shader& old) {
 
 std::string ShaderFile::ReadSource(const std::string& files) {
   File f(files);
-  if (f.exists()) {
-    std::string src;
-    if (f.read(src)) {
-      return src;
+
+  if (!f.exists()) return "";
+
+  std::vector<std::string> content;
+  if (f.read(content)) {
+    for (auto& line : content) {
+      if (line.find(inc_prefix) != std::string::npos) {
+        if (line.find(sys_prefix) != std::string::npos) {
+          // system include
+          auto start_loc = line.find(sys_prefix);
+          auto end_loc = line.find(sys_suffix);
+          auto file_name = f.getDirectory() + "/" +
+                           line.substr(start_loc + 1, end_loc - start_loc - 1);
+
+          for (int i = 0; i < 10; ++i) {
+            if (includePaths[i].empty()) {
+              includePaths[i] = file_name;
+              break;
+            }
+          }
+          if (f.getExtension() == ".vs" || f.getExtension() == ".vert") {
+            line = "#define VERTEX_SHADER\n" + ReadInclude(file_name);
+          } else if (f.getExtension() == ".fs" || f.getExtension() == ".frag") {
+            line = "#define FRAGMENT_SHADER\n" + ReadInclude(file_name);
+          } else if (f.getExtension() == ".gs" || f.getExtension() == ".geom") {
+            line = "#define GEOMETRY_SHADER\n" + ReadInclude(file_name);
+          } else if (f.getExtension() == ".tcs" ||
+                     f.getExtension() == ".tesc") {
+            line = "#define TESS_CONTROL_SHADER\n" + ReadInclude(file_name);
+          } else if (f.getExtension() == ".tes" ||
+                     f.getExtension() == ".tese") {
+            line = "#define TESS_EVALUATION_SHADER\n" + ReadInclude(file_name);
+          } else if (f.getExtension() == ".cs" || f.getExtension() == ".comp") {
+            line = "#define COMPUTE_SHADER\n" + ReadInclude(file_name);
+          } else
+            line = ReadInclude(file_name);
+        }
+      }
     }
+
+    return CombineToString(content);
   }
-  return "";
 }
 
 bool ShaderFile::CheckCompileStatus(Handle handle) {
@@ -103,4 +138,18 @@ Handle ShaderFile::CompileShader(unsigned int&& type, const std::string& src,
     return handle;
   }
   return 0;
+}
+
+std::string ShaderFile::ReadInclude(const std::string& files) {
+  File f(files);
+  if (!f.exists()) return "";
+  return ReadSource(files);
+}
+
+std::string ShaderFile::CombineToString(std::vector<std::string>& content) {
+  std::string result;
+  for (auto& line : content) {
+    result += line + "\n";
+  }
+  return result;
 }

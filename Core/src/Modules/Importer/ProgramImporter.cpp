@@ -127,55 +127,85 @@ ProgramModule::ProgramModule(world& ecs) {
   { ecs.observer<Program>().event(flecs::OnRemove).each(ProgramOnRemove); }
 }
 
-void AddShaderWatcher(flecs::entity self, ShaderFileWatcher& wathcer) {
+void AddIncludePathWatcher(const ShaderFile* ShaderFiles,
+                           ShaderFileWatcher& watcher) {
+  for (int i = 0; i < 10; i++) {
+    watcher.Has_includePaths[i] = !ShaderFiles->includePaths[i].empty();
+    if (watcher.Has_includePaths[i])
+      watcher.includePaths[i] =
+          std::filesystem::last_write_time(ShaderFiles->includePaths[i])
+              .time_since_epoch()
+              .count();
+  }
+}
+
+bool IncludePathWatcherUpdate(ShaderFile& files, ShaderFileWatcher& watcher) {
+  auto GetFileLastTimeWrite = [](const std::string& file) {
+    return std::filesystem::last_write_time(file).time_since_epoch().count();
+  };
+  for (int i = 0; i < 10; i++) {
+    if (watcher.Has_includePaths[i])
+      if (GetFileLastTimeWrite(files.includePaths[i]) !=
+          watcher.includePaths[i]) {
+        watcher.includePaths[i] = GetFileLastTimeWrite(files.includePaths[i]);
+        return true;
+      }
+  }
+  return false;
+}
+
+void AddShaderWatcher(flecs::entity self, ShaderFileWatcher& watcher) {
   auto ShaderFiles = self.get<ShaderFile>();
   if (!ShaderFiles->vertexShader.empty()) {
-    wathcer.Has_vertexShader = true;
-    wathcer.vertexShader =
+    watcher.Has_vertexShader = true;
+    watcher.vertexShader =
         std::filesystem::last_write_time(ShaderFiles->vertexShader)
             .time_since_epoch()
             .count();
   }
   if (!ShaderFiles->fragmentShader.empty()) {
-    wathcer.Has_fragmentShader = true;
-    wathcer.fragmentShader =
+    watcher.Has_fragmentShader = true;
+    watcher.fragmentShader =
         std::filesystem::last_write_time(ShaderFiles->fragmentShader)
             .time_since_epoch()
             .count();
   }
   if (!ShaderFiles->geometryShader.empty()) {
-    wathcer.Has_geometryShader = true;
-    wathcer.geometryShader =
+    watcher.Has_geometryShader = true;
+    watcher.geometryShader =
         std::filesystem::last_write_time(ShaderFiles->geometryShader)
             .time_since_epoch()
             .count();
   }
   if (!ShaderFiles->tessellationControlShader.empty()) {
-    wathcer.Has_tessellationControlShader = true;
-    wathcer.tessellationControlShader =
+    watcher.Has_tessellationControlShader = true;
+    watcher.tessellationControlShader =
         std::filesystem::last_write_time(ShaderFiles->tessellationControlShader)
             .time_since_epoch()
             .count();
   }
   if (!ShaderFiles->tessellationEvaluationShader.empty()) {
-    wathcer.Has_tessellationEvaluationShader = true;
-    wathcer.tessellationEvaluationShader =
+    watcher.Has_tessellationEvaluationShader = true;
+    watcher.tessellationEvaluationShader =
         std::filesystem::last_write_time(
             ShaderFiles->tessellationEvaluationShader)
             .time_since_epoch()
             .count();
   }
   if (!ShaderFiles->computeShader.empty()) {
-    wathcer.Has_computeShader = true;
-    wathcer.tessellationControlShader =
+    watcher.Has_computeShader = true;
+    watcher.tessellationControlShader =
         std::filesystem::last_write_time(ShaderFiles->computeShader)
             .time_since_epoch()
             .count();
   }
+
+  AddIncludePathWatcher(ShaderFiles, watcher);
 }
 
 void ShaderFileWatcherOnUpdate(flecs::entity self, ShaderFileWatcher& watcher,
                                ShaderFile& files, Shader& shader) {
+  // TODO: make the hot reload module only reload the changed shader.
   auto GetFileLastTimeWrite = [](const std::string& file) {
     return std::filesystem::last_write_time(file).time_since_epoch().count();
   };
@@ -216,15 +246,17 @@ void ShaderFileWatcherOnUpdate(flecs::entity self, ShaderFileWatcher& watcher,
     watcher.computeShader = GetFileLastTimeWrite(files.computeShader);
     NeedCompile = true;
   };
-  // clang-format on
 
-  if (NeedCompile)
+  // clang-format on
+  if (NeedCompile || IncludePathWatcherUpdate(files, watcher)) {
     // so far in this method, once the shader file is changed,
     //  all of the other shader file will also be recompiled,that's not what I
     //  want such as(I changed fragment shader, but the vertex shader will also
     //  be recompiled)
     self.set<Shader>(files.Compile(shader));
+  }
 }
+
 ShaderHotReloadModule::ShaderHotReloadModule(world& ecs) {
   ecs.import <ShaderHotReloadModule>();
   LoadComponent(ecs);

@@ -1,6 +1,6 @@
 //
 #version 460 core
-
+#include <CommonHeader.h>
 //
 
 layout (std140, binding = 0) uniform PerFrameData
@@ -8,13 +8,6 @@ layout (std140, binding = 0) uniform PerFrameData
     mat4 view;
     mat4 proj;
     vec4 cameraPos;
-};
-
-struct Vertex
-{
-    float pos[3];
-    float n[3];
-    float tc[2];
 };
 
 layout (std430, binding = 1) restrict readonly buffer Vertices
@@ -28,29 +21,22 @@ layout (std430, binding = 2) restrict readonly buffer Matrices
 };
 
 
-vec3 getPosition(int i)
-{
-    return vec3(in_Vertices[i].pos[0], in_Vertices[i].pos[1], in_Vertices[i].pos[2]);
+layout (location = 0) out PerVertex vtx;
+
+
+
+vec3 getPosition(int i) {
+    return vec3(in_Vertices[i].pos[0], in_Vertices[i].pos[1],
+                in_Vertices[i].pos[2]);
 }
 
-vec3 getNormal(int i)
-{
+vec3 getNormal(int i) {
     return vec3(in_Vertices[i].n[0], in_Vertices[i].n[1], in_Vertices[i].n[2]);
 }
 
-vec2 getTexCoord(int i)
-{
+vec2 getTexCoord(int i) {
     return vec2(in_Vertices[i].tc[0], in_Vertices[i].tc[1]);
 }
-
-struct PerVertex
-{
-    vec2 uv;
-    vec3 normal;
-    vec3 worldPos;
-};
-
-layout (location = 0) out PerVertex vtx;
 
 void main()
 {
