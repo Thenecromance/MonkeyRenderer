@@ -5,12 +5,12 @@
 
 #include <GLFW/glfw3.h>
 
+#include "FileWatcherModule.hpp"
 #include "Input/InputHandler.hpp"
 #include "InputComponents.hpp"
 #include "Logger.hpp"
 #include "Marcos/Marcos.hpp"
 #include "OpenGLApp.hpp"
-#include "FileWatcherModule.hpp"
 ROOT_BGN()
 
 bool Core::Initialize(float dt, int num_thread) {
@@ -39,7 +39,7 @@ bool Core::OnUpdate() {
   InputHandler::GetInstance()->ResetScroll();
 
   OpenGLApp::GetInstance()->OnUpdateEnd();
-  FileWatcherModule::GetInstance()->OnUpdate();
+  //  FileWatcherModule::GetInstance()->OnUpdate();
   return true;
 }
 

@@ -5,6 +5,8 @@
 #include <flecs.h>
 #include <glad/glad.h>
 
+#include <atomic>
+
 #include "FileWatcherModule.hpp"
 #include "Logger.hpp"
 #include "Phases.hpp"
@@ -209,46 +211,71 @@ void ShaderFileWatcherOnUpdate(flecs::entity self, ShaderFileWatcher& watcher,
   auto GetFileLastTimeWrite = [](const std::string& file) {
     return std::filesystem::last_write_time(file).time_since_epoch().count();
   };
-  // clang-format off
-  bool NeedCompile = false;
+
+  auto IsInTimeLimit = [&](long long old_time, std::string& file) -> bool {
+    if (GetFileLastTimeWrite(file) - old_time < 1000) {
+      return false;
+    }
+    return true;
+  };
+
+  // clang-format on
+  std::atomic<bool> NeedCompile = false;
   if ((watcher.Has_vertexShader &&
        watcher.vertexShader != GetFileLastTimeWrite(files.vertexShader))) {
-    watcher.vertexShader = GetFileLastTimeWrite(files.vertexShader);
-    NeedCompile = true;
+    if (IsInTimeLimit(watcher.vertexShader, files.vertexShader)) {
+      watcher.vertexShader = GetFileLastTimeWrite(files.vertexShader);
+      NeedCompile = true;
+    }
   }
 
   if ((watcher.Has_fragmentShader &&
        watcher.fragmentShader != GetFileLastTimeWrite(files.fragmentShader))) {
-    watcher.fragmentShader = GetFileLastTimeWrite(files.fragmentShader);
-    NeedCompile = true;
+    if (IsInTimeLimit(watcher.fragmentShader, files.fragmentShader)) {
+      watcher.fragmentShader = GetFileLastTimeWrite(files.fragmentShader);
+      NeedCompile = true;
+    }
   }
   if ((watcher.Has_geometryShader &&
        watcher.geometryShader != GetFileLastTimeWrite(files.geometryShader))) {
-    watcher.geometryShader = GetFileLastTimeWrite(files.geometryShader);
-    NeedCompile = true;
+    if (IsInTimeLimit(watcher.geometryShader, files.geometryShader)) {
+      watcher.geometryShader = GetFileLastTimeWrite(files.geometryShader);
+      NeedCompile = true;
+    }
   }
   if ((watcher.Has_tessellationControlShader &&
        watcher.tessellationControlShader !=
            GetFileLastTimeWrite(files.tessellationControlShader))) {
-    watcher.tessellationControlShader =
-        GetFileLastTimeWrite(files.tessellationControlShader);
-    NeedCompile = true;
+    if (IsInTimeLimit(watcher.tessellationControlShader,
+                      files.tessellationControlShader)) {
+      watcher.tessellationControlShader =
+          GetFileLastTimeWrite(files.tessellationControlShader);
+      NeedCompile = true;
+    }
   }
   if ((watcher.Has_tessellationEvaluationShader &&
        watcher.tessellationEvaluationShader !=
            GetFileLastTimeWrite(files.tessellationEvaluationShader))) {
-    watcher.tessellationEvaluationShader =
-        GetFileLastTimeWrite(files.tessellationEvaluationShader);
-    NeedCompile = true;
+    if (IsInTimeLimit(watcher.tessellationEvaluationShader,
+                      files.tessellationEvaluationShader)) {
+      watcher.tessellationEvaluationShader =
+          GetFileLastTimeWrite(files.tessellationEvaluationShader);
+      NeedCompile = true;
+    }
   }
   if ((watcher.Has_computeShader &&
        watcher.computeShader != GetFileLastTimeWrite(files.computeShader))) {
-    watcher.computeShader = GetFileLastTimeWrite(files.computeShader);
-    NeedCompile = true;
+    if (IsInTimeLimit(watcher.computeShader, files.computeShader)) {
+      watcher.computeShader = GetFileLastTimeWrite(files.computeShader);
+      NeedCompile = true;
+    }
   };
+  if (IncludePathWatcherUpdate(files, watcher)) {
+    NeedCompile = true;
+  }
 
   // clang-format on
-  if (NeedCompile || IncludePathWatcherUpdate(files, watcher)) {
+  if (NeedCompile) {
     // so far in this method, once the shader file is changed,
     //  all of the other shader file will also be recompiled,that's not what I
     //  want such as(I changed fragment shader, but the vertex shader will also

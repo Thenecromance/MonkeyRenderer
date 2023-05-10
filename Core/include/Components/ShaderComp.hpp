@@ -27,20 +27,13 @@ struct ShaderFile {
   Shader Compile(Shader& old);
 
  private:
-  std::string ReadSource(const std::string& files);
   static bool CheckCompileStatus(Handle handle);
+
+  // private:
+  std::string ReadSource(const std::string& file_path);
+
   static Handle CompileShader(unsigned int&& type, const std::string& src,
                               Handle handle = 0);
-
-  std::string ReadInclude(const std::string& files);
-  std::string CombineToString(std::vector<std::string>& content);
-
- private:
-  static constexpr char inc_prefix[] = "#include";
-  static constexpr char sys_prefix[] = "<";
-  static constexpr char sys_suffix[] = ">";
-  /*  static constexpr char cus_prefix[] = "\"";
-    static constexpr char cus_suffix[] = "\"";*/
 };
 
 // clang-format off
@@ -61,6 +54,7 @@ struct ShaderFileWatcher {
   std::array<long long, 10> includePaths        {0};
 };
 // clang-format on
+
 struct Program {
   Handle handle;
 };
