@@ -17,18 +17,18 @@ COMP_END(RenderComp)
 
 MOD_BGN(BaseRender)
 using namespace Component;
-auto genTexture = [](GLenum type, int width, int height,
-                     unsigned int internalFormat) -> Handle {
-  Handle handle = 0;
-  glCreateTextures(type, 1, &handle);
-  glTextureParameteri(handle, GL_TEXTURE_MAX_LEVEL, 0);
-  glTextureParameteri(handle, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTextureParameteri(handle, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTextureStorage2D(handle, 1, internalFormat, width, height);
-  return handle;
-};
 
 void FrameBufferInit(flecs::iter& it, size_t i, FrameBuffer& buffer) {
+  auto genTexture = [](GLenum type, int width, int height,
+                       unsigned int internalFormat) -> Handle {
+    Handle handle = 0;
+    glCreateTextures(type, 1, &handle);
+    glTextureParameteri(handle, GL_TEXTURE_MAX_LEVEL, 0);
+    glTextureParameteri(handle, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTextureParameteri(handle, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTextureStorage2D(handle, 1, internalFormat, width, height);
+    return handle;
+  };
   glCreateFramebuffers(1, &buffer.handle);
   // glBindFramebuffer(GL_FRAMEBUFFER, buffer.handle);
 

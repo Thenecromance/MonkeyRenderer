@@ -261,6 +261,7 @@ void ForwardRenderModule::LoadComponent() {
         if (isPreFabCreated_)
           self.is_a(prefab_);
         else
+          
           Logger::get<ForwardRenderModule>()->error(
               "forward render prefab does not create");
       });

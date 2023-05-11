@@ -30,4 +30,8 @@ struct SpotLight {
 };
 SIZE_OF(SpotLight)
 
+struct LightTransform {
+  glm::mat4 projection{};
+  glm::mat4 matrices{};
+};
 COMP_END(LightComp)

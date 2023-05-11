@@ -41,9 +41,22 @@ std::string ShaderOperator::RemoveGroupedExplain(const std::string& line) {
 }
 
 std::string ShaderOperator::GetIncludePath(const std::string& line) {
-  const auto start_loc = line.find(_sys_prefix);
-  const auto end_loc = line.find(_sys_suffix);
-  return pFile->getDirectory() + "//" +
+  size_t start_loc = std::string::npos;
+  size_t end_loc = std::string::npos;
+  if (line.find(_sys_prefix) != std::string::npos) {
+    start_loc = line.find(_sys_prefix);
+    end_loc = line.find(_sys_suffix);
+  } else {
+    start_loc = line.find(_user_prefix);
+    end_loc = line.find(_user_prefix, start_loc + 1);
+   
+  };
+
+  if (start_loc == std::string::npos) {
+    return "";
+  }
+  
+  return pFile->getDirectory() + "\\" +
          line.substr(start_loc + 1, end_loc - start_loc - 1);
 }
 
@@ -63,10 +76,12 @@ std::string ShaderOperator::ReadSource(
 
   for (auto& line : content) {
     if (IsVersionDefine(line)) {
+      // clang-format off
       // if put the define to the first line in shader, compiler will raise
-      // error C0204: version directive must be first statement and may not be
-      // repeated
+      // error C0204: version directive must be first statement and may not be repeated
       // so just put the define after the version define
+      // clang-format on
+
       line += "\n" + GeneratePreDefine();
     }
     if (IsInclude(line)) {
@@ -75,8 +90,16 @@ std::string ShaderOperator::ReadSource(
       // in this way, system could not watch the loop ref. this might be a core
       // problem
 
-      includePaths[include_idx++] = GetIncludePath(line);
-      ShaderOperator includeShader(GetIncludePath(line));
+      auto includePath = GetIncludePath(line);
+      Logger::get<ShaderOperator>()->info(
+          "{} Load {}", pFile->getRelativePath(), includePath);
+      if (includePath.empty()) {
+        line = "";
+        continue;
+      }
+
+      includePaths[include_idx++] = includePath;
+      ShaderOperator includeShader(includePath);
       line = includeShader.ReadSource(includePaths);
       continue;
     }

@@ -19,6 +19,20 @@
 #include "Position.hpp"
 #include "RenderComp.hpp"
 
+COMP_BGN(Mesh)
+void Mesh::DrawElement(unsigned int mode) const {
+  glBindVertexArray(vao);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, Vertices);
+  glDrawElements(mode, static_cast<GLsizei>(numIndices), GL_UNSIGNED_INT,
+                 nullptr);
+}
+
+void Mesh::DrawArrays(unsigned int mode, int first, int count) const {
+  glBindVertexArray(vao);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, Vertices);
+  glDrawArrays(mode, first, count);
+}
+COMP_END(Mesh)
 MOD_BGN(MeshModule)
 
 using namespace Monkey::Component;

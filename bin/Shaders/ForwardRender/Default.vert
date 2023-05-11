@@ -51,4 +51,5 @@ void main()
     vtx.uv = getTexCoord(gl_VertexID);
     vtx.normal = getNormal(gl_VertexID) * normalMatrix;
     vtx.worldPos = (model * vec4(pos, 1.0)).xyz;
+
 }

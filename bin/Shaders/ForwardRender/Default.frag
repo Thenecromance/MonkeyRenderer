@@ -30,6 +30,5 @@ void main()
     const float Rtheta = R0 + (1.0 - R0) * pow((1.0 - dot(-v, n)), 5.0);
 
     vec4 color = texture(texture0, vtx.uv);
-//    out_FragColor = color;
-    out_FragColor= vec4(1.0);
+    out_FragColor = color;
 };

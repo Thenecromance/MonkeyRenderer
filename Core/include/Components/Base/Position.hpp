@@ -23,13 +23,18 @@ struct Scale {
 SIZE_OF(Scale);
 
 struct Transform {
-  Handle Matrices{};
-  glm::mat4 value;
+  glm::mat4 value{};
 };
 
 SIZE_OF(Transform);
 
 struct Projection {
   glm::mat4 value{};
+};
+
+struct TransformGroup {
+  Handle groupedHandle{};
+  int size{1};
+  int bufferInUse{0};
 };
 COMP_END(Position)

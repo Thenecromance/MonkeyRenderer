@@ -13,11 +13,8 @@ class ShadowMapModule {
 
 
   private:
-  void RegisterComponents();
-
-  void LoadObserver();
-
-  void LoadSystem();
+  void LoadShadowMapComponent();
+  void LoadShadowMapSystem();
  private:
   //   bool isPreFabCreated_ = false;
   //   flecs::entity prefab_;

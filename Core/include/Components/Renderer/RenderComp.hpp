@@ -91,8 +91,8 @@ struct ShadowMap {
   Handle colorHandle{};
   Handle depthHandle{};
 
-  int height{};
-  int width{};
+  int height{1024};
+  int width{1024};
 
  public:
   void Bind();

@@ -208,19 +208,24 @@ void AddShaderWatcher(flecs::entity self, ShaderFileWatcher& watcher) {
 void ShaderFileWatcherOnUpdate(flecs::entity self, ShaderFileWatcher& watcher,
                                ShaderFile& files, Shader& shader) {
   // TODO: make the hot reload module only reload the changed shader.
+
+  // this method is too useless
   auto GetFileLastTimeWrite = [](const std::string& file) {
     return std::filesystem::last_write_time(file).time_since_epoch().count();
   };
 
   auto IsInTimeLimit = [&](long long old_time, std::string& file) -> bool {
+    // because of the std::filesystem::last_write_time,here will receive 2
+    // different time in several ms. so set the limit to 1s
     if (GetFileLastTimeWrite(file) - old_time < 1000) {
       return false;
     }
     return true;
   };
 
-  // clang-format on
   std::atomic<bool> NeedCompile = false;
+
+  // clang-format on
   if ((watcher.Has_vertexShader &&
        watcher.vertexShader != GetFileLastTimeWrite(files.vertexShader))) {
     if (IsInTimeLimit(watcher.vertexShader, files.vertexShader)) {
@@ -274,7 +279,6 @@ void ShaderFileWatcherOnUpdate(flecs::entity self, ShaderFileWatcher& watcher,
     NeedCompile = true;
   }
 
-  // clang-format on
   if (NeedCompile) {
     // so far in this method, once the shader file is changed,
     //  all of the other shader file will also be recompiled,that's not what I

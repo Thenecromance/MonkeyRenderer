@@ -3,6 +3,7 @@
 #include <array>
 #include <string>
 class File;
+
 class ShaderOperator {
  public:
   explicit ShaderOperator(std::string file_path);
@@ -15,6 +16,9 @@ class ShaderOperator {
   bool IsExplain(const std::string& line);
   bool IsVersionDefine(const std::string& line);
   std::string RemoveGroupedExplain(const std::string& line);
+  /// @brief change the #include <path> to the relative path to make the include file merge to the source file
+  /// @param line #include <path>
+  /// @return the relative path of the include file
   std::string GetIncludePath(const std::string& line);
 
   std::string GeneratePreDefine();
@@ -27,7 +31,7 @@ class ShaderOperator {
   static constexpr auto _sys_prefix = "<";
   static constexpr auto _sys_suffix = ">";
   static constexpr auto _user_prefix = "\"";
-  static constexpr auto _user_suffix = "\"";
+//  static constexpr auto _user_suffix = "\"";
 
   static constexpr auto _version_prefix = "#version";
   //   static constexpr auto _version_suffix = "\n";

@@ -11,7 +11,7 @@
 #include "LightComp.hpp"
 #include "MeshComp.hpp"
 #include "RenderComp.hpp"
-
+#include "Phases.hpp"
 using namespace Monkey::Component;
 unsigned int lightHandle{};
 
@@ -26,6 +26,7 @@ void OnPointLightUpdate(PointLight& light) {
   glNamedBufferSubData(lightHandle, 0, sizeof(PointLight), &light);
 }
 
+void LightSpaceMatricesUpdate(LightTransform& transform){}
 void LightUI(PointLight& light) {
   ImGui::Begin("Light");
   ImGui::InputFloat("Position X:", &light.position.x, 1.0f, 10.0f);
@@ -37,6 +38,7 @@ void LightUI(PointLight& light) {
   ImGui::SliderFloat("Color B:", &light.color.b, 0.0f, 1.0f);
   ImGui::End();
 }
+
 
 LightModule::LightModule(world& ecs) {
   ecs.module<LightModule>();
@@ -53,6 +55,11 @@ LightModule::LightModule(world& ecs) {
   ecs.system<PointLight>("PointLightUpdate")
       .kind(flecs::PostUpdate)
       .each(OnPointLightUpdate);
+  
+  ecs.system<LightTransform>("LightMatricesUpdate")
+      .kind(Monkey::Phase::LightBinding)
+      .each(LightSpaceMatricesUpdate);
+      
 
   ecs.system<PointLight>("PointLightUI").kind(flecs::PreUpdate).each(LightUI);
 }

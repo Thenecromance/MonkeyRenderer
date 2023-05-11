@@ -2,8 +2,9 @@
 
 #include <string>
 #include <vector>
-#include "Marcos/Marcos.hpp"
+
 #include "CommonDef.hpp"
+#include "Marcos/Marcos.hpp"
 COMP_BGN(Mesh)
 /// @brief using this component to load the mesh object from the disk
 struct MeshFile {
@@ -17,6 +18,9 @@ struct Mesh {
   Handle Vertices{};
   Handle Indirect{};
   unsigned int numIndices{};
+
+  void DrawElement(unsigned int mode = 0x0004) const;
+  void DrawArrays(unsigned int mode, int first, int count) const;
 };
 /// @brief mesh data in cache
 struct MeshData {
