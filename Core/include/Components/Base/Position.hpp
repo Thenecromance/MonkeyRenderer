@@ -33,7 +33,7 @@ struct Projection {
 };
 
 struct TransformGroup {
-  Handle groupedHandle{};
+  Handle groupedHandle{0};
   int size{1};
   int bufferInUse{0};
 };

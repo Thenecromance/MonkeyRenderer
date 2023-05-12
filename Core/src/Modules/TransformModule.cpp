@@ -85,7 +85,8 @@ TransformModule::TransformModule(world& ecs) {
 /// @brief base logic update for transform component
 /// @param self the owner for tranform component
 /// @param transform tranform component
-void TransformUpdate(entity self, Transform& transform) {
+void TransformUpdate(flecs::iter& it, size_t i, Transform& transform) {
+  auto self = it.entity(i);
   auto scale_ = glm::vec3(1.0f);
   auto rotation_ = glm::vec3(1.0f);
   auto position_ = glm::vec3(1.0f);
@@ -104,6 +105,26 @@ void TransformUpdate(entity self, Transform& transform) {
   const glm::mat4 m =
       glm::rotate(scale * rotation * pos, 0.1f, glm::vec3(0.0f, 0.0f, 1.0f));
   transform.value = m;
+
+  // in flecs it will get an 1 object which is not in the groups , so just use
+  // this to ignore it
+  if (it.count() == 1) {
+    return;
+  }
+  if (i == 0) {
+    if (!self.has<TransformGroup>()) {
+      Logger::get<TransformModule>()->error(
+          "entity {} doesn't have transform "
+          "group, please add it first",
+          self.name());
+      return;
+    }
+    auto group = self.get<TransformGroup>();
+
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, group->groupedHandle);
+    glNamedBufferSubData(group->groupedHandle, 0,
+                         sizeof(glm::mat4) * it.count(), self.get<Transform>());
+  }
 }
 
 TransformModule::TransformModule(world& ecs) {
@@ -118,12 +139,6 @@ TransformModule::TransformModule(world& ecs) {
       .kind(Phase::LogicUpdate)
       .each(TransformUpdate);
 }
-
-// void TransformOnAdd(entity self, Transform& transform) {
-//   if (!self.has<TransformGroup>()) {
-//     self.add<TransformGroup>();
-//   }
-// }
 
 void TransformModule::LoadTransformComponent() {
   prefab_ = pWorld_->prefab("TransformGroup")
@@ -151,8 +166,14 @@ void TransformGroupAllocate(entity self, TransformGroup& group) {
   if (group.groupedHandle == 0) {
     glCreateBuffers(1, &group.groupedHandle);
     // create an empty buffer for the group
-    glNamedBufferStorage(group.groupedHandle, sizeof(glm::mat4), nullptr,
-                         GL_DYNAMIC_STORAGE_BIT);
+    /*glNamedBufferStorage(group.groupedHandle, sizeof(glm::mat4), nullptr,
+                         GL_DYNAMIC_STORAGE_BIT);*/
+
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, group.groupedHandle);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4) * group.size,
+                 nullptr, GL_DYNAMIC_DRAW);
+    Logger::get<TransformModule>()->info("Create buffer for transform group {}",
+                                         group.groupedHandle);
   }
   if (group.groupedHandle == 0) {
     Logger::get<TransformModule>()->error(
@@ -169,34 +190,27 @@ void TransformGroupExtend(entity self, TransformGroup& group) {
   group.bufferInUse++;
   if (group.bufferInUse >= group.size) {
     group.size *= 2;  // double the size
-    glNamedBufferStorage(group.groupedHandle, sizeof(glm::mat4) * group.size,
-                         nullptr, GL_DYNAMIC_STORAGE_BIT);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, group.groupedHandle);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4) * group.size,
+                 nullptr, GL_DYNAMIC_DRAW);
   }
 }
 
 void TransformModule::LoadTransformGroup() {
-  pWorld_->component<TransformGroup>()
-      .member<Handle>("GroupHandle")
-      .member<int>("Size")
-      .member<int>("bufferInUse");
-  // when transform group is on add the group buffer should be in a right way to
-  // use
-  auto TransformGroupExtend = [&](entity self, TransformGroup& group) {
-    TransformGroupAllocate(self, group);
-    group.bufferInUse++;
-    if (group.bufferInUse >= group.size) {
-      group.size *= 2;  // double the size
-      glNamedBufferStorage(group.groupedHandle, sizeof(glm::mat4) * group.size,
-                           nullptr, GL_DYNAMIC_STORAGE_BIT);
-    }
-  };
+  //  pWorld_->component<TransformGroup>()
+  //      .member<Handle>("GroupHandle")
+  //      .member<int>("Size")
+  //      .member<int>("bufferInUse");
 
-  pWorld_->component<TransformGroup>()
-      .on_add(TransformGroupExtend)
-      .on_set([](entity self, TransformGroup&) {
-        Logger::get<TransformModule>()->error("TransformGroup can not be set");
-        assert(false && "TransformGroup can not be set");
-      });
+  pWorld_->observer<TransformGroup>()
+      .event(flecs::OnAdd)
+      .each(TransformGroupExtend);
+  //  pWorld_->observer<TransformGroup>()
+  //      .event(flecs::OnSet)
+  //      .each([](entity self, TransformGroup&) {
+  //        Logger::get<TransformModule>()->error("TransformGroup can not
+  //        beset"); assert(false && " TransformGroup can not be set ");
+  //      });
 }
 
 MOD_END(TransformModule)

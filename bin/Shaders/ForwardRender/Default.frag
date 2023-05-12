@@ -18,7 +18,6 @@ layout (binding = 0) uniform sampler2D texture0;
 
 void main()
 {
-
     vec3 n = normalize(vtx.normal);
     vec3 v = normalize(cameraPos.xyz - vtx.worldPos);
     vec3 reflection = -normalize(reflect(v, n));

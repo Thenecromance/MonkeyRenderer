@@ -197,13 +197,11 @@ void ForwardRenderSystem(flecs::iter& it, size_t i, ForwardRenderer& render,
   //      // const void *indices,GLsizei instancecount);
   //    }
   //  }
-
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, transform->Matrices);
-  glDrawElementsInstanced(GL_TRIANGLES, static_cast<GLsizei>(mesh->numIndices),
-                          GL_UNSIGNED_INT, nullptr, 1);
-
-  // reset to the default frame buffer
-  //  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  if (it.count() > 1 && i == 0) {
+    glDrawElementsInstanced(GL_TRIANGLES,
+                            static_cast<GLsizei>(mesh->numIndices),
+                            GL_UNSIGNED_INT, nullptr, it.count());
+  }
 }
 
 void ForwardRenderSystemOffScreen(flecs::entity self, ForwardRenderer& render,
@@ -261,7 +259,7 @@ void ForwardRenderModule::LoadComponent() {
         if (isPreFabCreated_)
           self.is_a(prefab_);
         else
-          
+
           Logger::get<ForwardRenderModule>()->error(
               "forward render prefab does not create");
       });
