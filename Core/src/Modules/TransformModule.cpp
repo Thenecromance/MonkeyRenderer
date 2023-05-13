@@ -85,29 +85,24 @@ TransformModule::TransformModule(world& ecs) {
 /// @brief base logic update for transform component
 /// @param self the owner for tranform component
 /// @param transform tranform component
-void TransformUpdate(flecs::iter& it, size_t i, Transform& transform) {
-  auto self = it.entity(i);
-  auto scale_ = glm::vec3(1.0f);
-  auto rotation_ = glm::vec3(1.0f);
-  auto position_ = glm::vec3(1.0f);
-  float angle_ = 0.0f;
-  //  if (self.has<Scale>()) scale_ = self.get<Scale>()->value;
-  if (self.has<Position>()) position_ = self.get<Position>()->value;
-  if (self.has<Rotation>()) {
-    rotation_ = self.get<Rotation>()->value;
-    angle_ = self.get<Rotation>()->angle;
-  }
+void TransformUpdate(flecs::iter& it, size_t i, Transform& transform,
+                     Position& position_, Scale& scale_, Rotation& rotation_
 
-  const glm::mat4 scale = glm::scale(glm::mat4(1.0f), scale_);
-  const glm::mat4 rotation =
-      glm::rotate(glm::mat4(1.0f), glm::radians(angle_), rotation_);
-  const glm::mat4 pos = glm::translate(glm::mat4(1.0f), position_);
-  const glm::mat4 m =
-      glm::rotate(scale * rotation * pos, 0.1f, glm::vec3(0.0f, 0.0f, 1.0f));
-  transform.value = m;
+) {
+  auto self = it.entity(i);
+  float angle_ = rotation_.angle;
+
+  // clang-format off
+  const glm::mat4 scale = glm::scale(glm::mat4(1.0f), scale_.value);
+  const glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(angle_), rotation_.value);
+  const glm::mat4 pos = glm::translate(glm::mat4(1.0f), position_.value);
+//  const glm::mat4 m =
+  transform.value = glm::rotate(scale * rotation * pos, 0.1f, glm::vec3(0.0f, 0.0f, 1.0f));
+  // clang-format on
 
   // in flecs it will get an 1 object which is not in the groups , so just use
   // this to ignore it
+  // but if only have 1 object in the group, still need to be fixed
   if (it.count() == 1) {
     return;
   }
@@ -127,6 +122,35 @@ void TransformUpdate(flecs::iter& it, size_t i, Transform& transform) {
   }
 }
 
+void TransformIter(flecs::iter& it, Transform* transform, Position* position_,
+                   Scale* scale_, Rotation* rotation_) {
+  auto self = it.entity(0);
+  if (!self.has<TransformGroup>()) {
+    Logger::get<TransformModule>()->error(
+        "entity {} doesn't have transform "
+        "group, please add it first",
+        self.name());
+    return;
+  }
+
+  auto group = self.get<TransformGroup>();
+
+  for (auto row : it) {
+    float angle_ = rotation_[row].angle;
+    // clang-format off
+  const glm::mat4 scale = glm::scale(glm::mat4(1.0f), scale_[row].value);
+  const glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(angle_), rotation_[row].value);
+  const glm::mat4 pos = glm::translate(glm::mat4(1.0f), position_[row].value);
+  const glm::mat4 m = glm::rotate(scale * rotation * pos, 0.1f, glm::vec3(0.0f, 0.0f, 1.0f));
+  transform[row].value = m;
+    // clang-format on
+  }
+
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, group->groupedHandle);
+  glNamedBufferSubData(group->groupedHandle, 0, sizeof(glm::mat4) * it.count(),
+                       self.get<Transform>());
+}
+
 TransformModule::TransformModule(world& ecs) {
   ecs.module<TransformModule>();
   pWorld_ = &ecs;
@@ -135,9 +159,9 @@ TransformModule::TransformModule(world& ecs) {
 
   LoadTransformComponent();
 
-  ecs.system<Transform>("TransformUpdate")
+  ecs.system<Transform, Position, Scale, Rotation>("TransformUpdate")
       .kind(Phase::LogicUpdate)
-      .each(TransformUpdate);
+      .iter(TransformIter);
 }
 
 void TransformModule::LoadTransformComponent() {
@@ -162,15 +186,13 @@ void TransformModule::LoadTransformComponent() {
 /// @brief if the group is full then allocate a new buffer
 /// @param self
 /// @param group the transform group
-void TransformGroupAllocate(entity self, TransformGroup& group) {
+void TransformGroupAllocate(TransformGroup& group) {
   if (group.groupedHandle == 0) {
     glCreateBuffers(1, &group.groupedHandle);
-    // create an empty buffer for the group
-    /*glNamedBufferStorage(group.groupedHandle, sizeof(glm::mat4), nullptr,
-                         GL_DYNAMIC_STORAGE_BIT);*/
 
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, group.groupedHandle);
-    glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::mat4) * group.size,
+    glBufferData(GL_SHADER_STORAGE_BUFFER,
+                 static_cast<GLsizeiptr>(sizeof(glm::mat4) * group.size),
                  nullptr, GL_DYNAMIC_DRAW);
     Logger::get<TransformModule>()->info("Create buffer for transform group {}",
                                          group.groupedHandle);
@@ -182,11 +204,11 @@ void TransformGroupAllocate(entity self, TransformGroup& group) {
   }
 }
 
-/// @brief just extend the size of the transform group
-/// @param self
-/// @param transformGroup
-void TransformGroupExtend(entity self, TransformGroup& group) {
-  TransformGroupAllocate(self, group);
+/// @brief so far this transform group is only has one buffer, but here will be
+/// auto allocate a new buffer if the buffer is reached the max size
+/// @param transformGroup TransformGroup component
+void TransformGroupExtend(TransformGroup& group) {
+  TransformGroupAllocate(group);
   group.bufferInUse++;
   if (group.bufferInUse >= group.size) {
     group.size *= 2;  // double the size
@@ -205,6 +227,7 @@ void TransformModule::LoadTransformGroup() {
   pWorld_->observer<TransformGroup>()
       .event(flecs::OnAdd)
       .each(TransformGroupExtend);
+
   //  pWorld_->observer<TransformGroup>()
   //      .event(flecs::OnSet)
   //      .each([](entity self, TransformGroup&) {

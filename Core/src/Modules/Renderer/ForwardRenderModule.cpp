@@ -167,7 +167,23 @@
 MOD_BGN(ForwardRenderModule)
 using namespace Component;
 
-void ForwardRenderSystem(flecs::iter& it, size_t i, ForwardRenderer& render,
+void ForwardRenderSystemIter(flecs::iter& it, ForwardRenderer* render) {
+  glEnable(GL_DEPTH_TEST);
+  glDisable(GL_BLEND);
+  
+  const auto texture = it.entity(0).get<TextureHandle>();
+  const auto mesh = it.entity(0).get<Mesh>();
+
+  
+  glUseProgram(it.entity(0).get<Program>()->handle);
+  glBindTextures(0, 1, &texture->handle);
+  glBindVertexArray(mesh->vao);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, mesh->Vertices);
+
+  glDrawElementsInstanced(GL_TRIANGLES, static_cast<GLsizei>(mesh->numIndices),
+                          GL_UNSIGNED_INT, nullptr, it.count());
+}
+/*void ForwardRenderSystem(flecs::iter& it, size_t i, ForwardRenderer& render,
                          const Program& program) {
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
@@ -202,7 +218,7 @@ void ForwardRenderSystem(flecs::iter& it, size_t i, ForwardRenderer& render,
                             static_cast<GLsizei>(mesh->numIndices),
                             GL_UNSIGNED_INT, nullptr, it.count());
   }
-}
+}*/
 
 void ForwardRenderSystemOffScreen(flecs::entity self, ForwardRenderer& render,
                                   const Program& program,
@@ -219,9 +235,9 @@ ForwardRenderModule::ForwardRenderModule(world& ecs) {
   CreateDefaultProgram();
   LoadComponent();
   //  [this] { this->LoadComponent(); };
-  ecs.system<ForwardRenderer, const Program>("ForwardRenderSystem")
+  ecs.system<ForwardRenderer>("ForwardRenderSystem")
       .kind(Phase::RenderStage)
-      .each(ForwardRenderSystem);
+      .iter(ForwardRenderSystemIter);
   ecs.system<ForwardRenderer, const Program, const FrameBuffer>(
          "ForwardRenderOffscreen")
       .kind(Phase::RenderStage)
