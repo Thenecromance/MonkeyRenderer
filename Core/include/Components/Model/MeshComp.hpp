@@ -18,9 +18,13 @@ struct Mesh {
   Handle Vertices{};
   Handle Indirect{};
   unsigned int numIndices{};
+  
+  
 
   void DrawElement(unsigned int mode = 0x0004) const;
   void DrawArrays(unsigned int mode, int first, int count) const;
+  void DrawInstance(unsigned int mode = 0x0004,
+                    unsigned int instanceCount = 1) const;
 };
 /// @brief mesh data in cache
 struct MeshData {

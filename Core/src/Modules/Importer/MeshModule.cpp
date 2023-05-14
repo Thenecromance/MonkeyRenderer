@@ -32,6 +32,12 @@ void Mesh::DrawArrays(unsigned int mode, int first, int count) const {
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, Vertices);
   glDrawArrays(mode, first, count);
 }
+void Mesh::DrawInstance(unsigned int mode, unsigned int instanceCount) const {
+  glBindVertexArray(vao);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, Vertices);
+  glDrawElementsInstanced(mode, static_cast<GLsizei>(numIndices),
+                          GL_UNSIGNED_INT, nullptr, instanceCount);
+}
 COMP_END(Mesh)
 MOD_BGN(MeshModule)
 
@@ -141,11 +147,11 @@ void LoadMeshDataToGPU(flecs::entity e, MeshData& data) {
 }
 
 void InitMesh(flecs::entity self, Mesh& mesh) {
-  if (self.has<BaseRenderer>() || self.has<ForwardRenderer>() ||
-      self.has<DefferedRenderer>()) {
+  if (self.has<BaseRenderComp>() || self.has<ForwardRenderComp>() ||
+      self.has<DefferedRenderComp>()) {
     return;
   }
-  self.add<ForwardRenderer>();
+  self.add<ForwardRenderComp>();
   self.add<Position>().add<Rotation>().add<Scale>();
 }
 

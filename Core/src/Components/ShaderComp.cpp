@@ -77,8 +77,10 @@ Handle ShaderFile::CompileShader(unsigned int&& type, const std::string& src,
   glShaderSource(handle, 1, &data, nullptr);
   glCompileShader(handle);
   if (CheckCompileStatus(handle)) {
+   
     return handle;
   }
+  Logger::get<ShaderFile>()->info("{}", src);
   return 0;
 }
 

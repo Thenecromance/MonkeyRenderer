@@ -15,26 +15,25 @@ struct PerFrameDataComp {
 };
 SIZE_OF(PerFrameDataComp);
 
-struct BaseRenderer {
+struct BaseRenderComp {
   Handle handle{};
 
   Handle vao{};
   unsigned int drawType{0x0004};
 };
-SIZE_OF(BaseRenderer);
+SIZE_OF(BaseRenderComp);
 
-struct ForwardRenderer {
+struct ForwardRenderComp {
   unsigned int drawType{0x0004};
 };
-SIZE_OF(ForwardRenderer);
+SIZE_OF(ForwardRenderComp);
 
 /// @brief deffered renderer if object is marked by this ,
-struct DefferedRenderer {
+struct DefferedRenderComp {
   Handle geomHandle{};
   Handle lightHandle{};
-  unsigned int drawType{0x0004};
 };
-SIZE_OF(DefferedRenderer);
+SIZE_OF(DefferedRenderComp);
 
 /// @brief post process effect
 struct PostProcess {
@@ -75,11 +74,14 @@ struct GBuffer {
   Handle handle{};
 
   Handle positionHandle{};
-  Handle NormalHandle{};
-  Handle AlbedoHandle{};
+  Handle normalHandle{};
+  Handle albedoHandle{};
 
   Handle depthHandle{};
-
+  
+  
+  int     width{};
+  int     height{};
   void Bind();
   void Unbind();
 };
@@ -99,7 +101,6 @@ struct ShadowMap {
   void Unbind();
 };
 SIZE_OF(ShadowMap);
-
 
 struct SSAO {
   Handle handle{};

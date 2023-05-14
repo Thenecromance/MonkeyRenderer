@@ -23,7 +23,7 @@ bool Core::Initialize(float dt, int num_thread) {
 
   { InputHandler::GetInstance()->Initialize(); }
 
-  ecs.set_threads(num_thread);
+  ecs.set_threads(1);
   ecs.set_target_fps(dt);
 
   return true;

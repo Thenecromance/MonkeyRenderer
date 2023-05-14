@@ -5,6 +5,7 @@
 
 #include "Components/Components.hpp"
 #include "Components/Model/MeshComp.hpp"
+#include "Components/Renderer/RenderComp.hpp"
 #include "Components/ShaderComp.hpp"
 #include "Components/Textures/Texture.hpp"
 #include "Core.hpp"
@@ -25,50 +26,6 @@ using namespace Monkey::Component;
 using namespace Monkey::Module;
 
 using namespace glm;
-
-// #pragma region Model
-// void LoadDuck(UID &duck, Handle &texture) {
-// #pragma region Model Loading
-//   auto uid = TextureLoader::GetInstance().LoadAndCompile(
-//       R"(data\rubber_duck\textures\Duck_baseColor.png)"
-//       //	        R"(data/wall.jpg)"
-//   );
-//   texture = TextureLoader::GetInstance().GetHandle(uid);
-//   duck = ModelLoader::GetInstance()->LoadModelAndUpLoad(
-//       R"(data\rubber_duck\scene.gltf)",
-//       //
-//       "data\\glTF-Sample-Models\\2.0\\DamagedHelmet\\glTF\\DamagedHelmet.gltf",
-//       "PPrubberDuck");
-// #pragma endregion.
-// }
-//
-// void LoadSuit(UID &id, std::vector<Handle> &textures) {
-//   id = ModelLoader::GetInstance()->LoadModelAndUpLoad(
-//       R"(data\nanosuit\nanosuit.obj)", "NanoSuit");
-// #d ef ine LOAD(path)                                                   \
-//  {                                                                  \
-//    auto uid = TextureLoader::GetInstance().LoadAndCompile(path);    \
-//    textures.push_back(TextureLoader::GetInstance().GetHandle(uid)); \
-//  }
-//   LOAD(R"(data\nanosuit\arm_dif.png)");
-//   LOAD(R"(data\nanosuit\arm_showroom_ddn.png)");
-//   LOAD(R"(data\nanosuit\arm_showroom_spec.png)");
-//   LOAD(R"(data\nanosuit\body_dif.png)");
-//   LOAD(R"(data\nanosuit\body_showroom_ddn.png)");
-//   LOAD(R"(data\nanosuit\body_showroom_spec.png)");
-//   LOAD(R"(data\nanosuit\glass_ddn.png)");
-//   LOAD(R"(data\nanosuit\glass_dif.png)");
-//   LOAD(R"(data\nanosuit\hand_dif.png)");
-//   LOAD(R"(data\nanosuit\hand_showroom_ddn.png)");
-//   LOAD(R"(data\nanosuit\hand_showroom_spec.png)");
-//   LOAD(R"(data\nanosuit\helmet_diff.png)");
-//   LOAD(R"(data\nanosuit\helmet_showroom_ddn.png)");
-//   LOAD(R"(data\nanosuit\helmet_showroom_spec.png)");
-//   LOAD(R"(data\nanosuit\leg_dif.png)");
-//   LOAD(R"(data\nanosuit\leg_showroom_ddn.png)");
-//   LOAD(R"(data\nanosuit\leg_showroom_spec.png)");
-// }
-// #pragma endregion
 
 Handle CreateMatrices() {
   GLuint modelMatrices;
@@ -97,9 +54,11 @@ void MeshTest(world &ecs) {
           .set<MeshFile>({.path = R"(data\rubber_duck\scene.gltf)"})
           .set<Texture>(
               {.path = R"(data\rubber_duck\textures\Duck_baseColor.png)"})
-          .add<Transform>();
+          .add<Transform>()
+          .add<DefferedRenderComp>()
+          .disable<ForwardRenderComp>();
 
-  // when using the core::EnableRest() function, a large multi draw will spend a
+  // when using the core::EnableRest() , a large multi draw will spend a
   // lot of time on the CPU to upload the data to dashboard , caused the low fps
   for (int x = 0; x < 50; ++x) {
     for (int y = 0; y < 50; ++y) {
@@ -110,11 +69,12 @@ void MeshTest(world &ecs) {
           .set<Mesh>({*duck.get<Mesh>()})
           .set<TextureHandle>({*duck.get<TextureHandle>()})
           .set<Position>({{x * 2.0f, 0.0f, y * 2.0f}})
-          .add<Transform>();
+          .add<Transform>()
+          .disable<ForwardRenderComp>()
+          .add<DefferedRenderComp>();
     }
   }
-
-  duck.disable();
+  //   duck.disable();
 }
 int main() {
   Core::GetInstance()->Initialize(196, 8);

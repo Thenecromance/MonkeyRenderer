@@ -4,10 +4,11 @@
 
 #include "CameraModule.hpp"
 
-//#include <flecs.h>
-#include<Phases.hpp>
+// #include <flecs.h>
 #include <glad/glad.h>
 #include <imgui.h>
+
+#include <Phases.hpp>
 
 #include "CameraComponent.hpp"
 #include "ImGuiComponentDraw.hpp"
@@ -123,7 +124,6 @@ void CameraUI(flecs::entity e, CameraComponent &cameraComponent) {
 }
 
 CameraModule::CameraModule(world &ecs) {
-  PerFrameDataModule(ecs);
   ecs.import <CameraModule>();
   Logger::get("Module")->trace("{} Loaded", __FUNCTION__);
 
@@ -151,12 +151,14 @@ CameraModule::CameraModule(world &ecs) {
       });
 
   ecs.system<CameraComponent, const InputController>("OnCameraUpdate")
-      .kind(flecs::PreUpdate)
+      .kind(Phase::CameraUpdate)
       .each(OnCameraUpdate);
 
   ecs.system<CameraComponent>("CameraDebug")
-      .kind(flecs::PreUpdate)
+      .kind(Phase::ImGuiRender)
       .each(CameraUI);
+
+  PerFrameDataModule(ecs);
 }
 
 void PerFrameDataInit(PerFrameDataComp &comp) {
@@ -187,7 +189,7 @@ void CameraModule::PerFrameDataModule(world &ecs) {
   ecs.observer<PerFrameDataComp>().event(flecs::OnAdd).each(PerFrameDataInit);
   ecs.system<PerFrameDataComp, const CameraComponent>(
          "PerFrameDataUpdateSystem")
-      .kind(Phase::ImGuiRender)
+      .kind(Phase::CameraUpdate)
       .each(PerFrameDataUpdate);
 }
 MOD_END(Camera)

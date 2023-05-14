@@ -4,6 +4,7 @@
 #include <OpenGLApp.hpp>
 
 #include "BaseRenederModule.hpp"
+#include "Logger.hpp"
 #include "Marcos/Marcos.hpp"
 #include "RenderComp.hpp"
 
@@ -65,6 +66,8 @@ void FrameBufferInit(flecs::iter& it, size_t i, FrameBuffer& buffer) {
     buffer.width = width;
     buffer.height = height;
   }
+
+  Logger::get("Debug")->info("CreateFrameBuffer ");
   assert(status == GL_FRAMEBUFFER_COMPLETE);
 }
 
@@ -92,7 +95,7 @@ FrameBufferModule::FrameBufferModule(world& ecs) {
 MOD_END(BaseRender)
 
 namespace Monkey::Module {
-void OnBaseRenderer(entity e, BaseRenderer& render) {
+void OnBaseRenderer(entity e, BaseRenderComp& render) {
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
 
@@ -109,19 +112,25 @@ void OnBaseRenderer(entity e, BaseRenderer& render) {
   glDisable(GL_DEPTH_TEST);
 }
 
-void RemoveOtherRenderer(entity self, BaseRenderer& render) {
-  if (self.has<ForwardRenderer>()) self.remove<ForwardRenderer>();
-  if (self.has<DefferedRenderer>()) self.remove<DefferedRenderer>();
+void RemoveOtherRenderer(entity self, BaseRenderComp& render) {
+  if (self.has<ForwardRenderComp>()) self.remove<ForwardRenderComp>();
+  if (self.has<DefferedRenderComp>()) self.remove<DefferedRenderComp>();
 }
 
 BaseRender::BaseRender(world& ecs) {
   ecs.module<BaseRender>();
+  
+  
+  ecs.component<FrameBuffer>()
+      .member<Handle>("handle")
+      .member<Handle>("colorHandle")
+      .member<Handle>("depthHandle");
 
-  ecs.system<BaseRenderer>("OnBaseRenderer")
+  ecs.system<BaseRenderComp>("OnBaseRenderer")
       .kind(flecs::OnStore)
       .each(OnBaseRenderer);
 
-  ecs.observer<BaseRenderer>().event(flecs::OnSet).each(RemoveOtherRenderer);
+  ecs.observer<BaseRenderComp>().event(flecs::OnSet).each(RemoveOtherRenderer);
 }
 
 }  // namespace Monkey::Module

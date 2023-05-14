@@ -49,13 +49,12 @@ std::string ShaderOperator::GetIncludePath(const std::string& line) {
   } else {
     start_loc = line.find(_user_prefix);
     end_loc = line.find(_user_prefix, start_loc + 1);
-   
   };
 
   if (start_loc == std::string::npos) {
     return "";
   }
-  
+
   return pFile->getDirectory() + "\\" +
          line.substr(start_loc + 1, end_loc - start_loc - 1);
 }
@@ -91,8 +90,8 @@ std::string ShaderOperator::ReadSource(
       // problem
 
       auto includePath = GetIncludePath(line);
-      Logger::get<ShaderOperator>()->info(
-          "{} Load {}", pFile->getRelativePath(), includePath);
+      Logger::get<ShaderOperator>()->trace(
+          "[{}] Load <<-- [{}] ", pFile->getRelativePath(), includePath);
       if (includePath.empty()) {
         line = "";
         continue;
