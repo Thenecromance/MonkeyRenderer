@@ -17,7 +17,11 @@ template <typename T>
 struct GetTypeNameHelper {
   static const char *GetTypeName() {
     static const size_t size = sizeof(__FUNCTION__) - FRONT_SIZE - BACK_SIZE;
-    static char typeName[size] = {};
+    static char typeName[size] =
+        {};  // ignore the error from the Logger::get<>() just because when
+             // coding time the compiler can't know the size of the typeName,
+             // but when the program is compiled, the size of the typeName is
+             // known.
     memcpy(typeName, __FUNCTION__ + FRONT_SIZE, size - 1u);
 
     return typeName;
@@ -30,7 +34,7 @@ const char *GetTypeName() {
   return internal::GetTypeNameHelper<T>::GetTypeName();
 }
 
-/// @brief a simple way to wrapped the spdlog 
+/// @brief a simple way to wrapped the spdlog
 class Logger {
  public:
   static std::shared_ptr<spdlog::logger> get(const std::string &name);

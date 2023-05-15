@@ -79,7 +79,10 @@ void OnRender(const ImGuiBaseComp &comp, const Program &program) {
   glScissor(0, 0, ImGui::GetIO().DisplaySize.x, ImGui::GetIO().DisplaySize.y);
   glDisable(GL_SCISSOR_TEST);
 }
-void NewFrame(const InternalImGuiStart &) {
+
+// use flecs::iter no need to add InternalImGuiStart to the world, just use
+// ImGuiBaseComp can drive this like usual
+void NewFrame(flecs::iter &it) {
   int width, height;
   OpenGLApp::GetInstance()->GetWindowSize(width, height);
   ImGuiIO &io = ImGui::GetIO();
@@ -254,10 +257,11 @@ void ImGuiBaseRenderInit(flecs::iter &it, size_t i, ImGuiBaseComp &comp) {
 ImGuiRenderer::ImGuiRenderer(world &ecs) {
   ecs.observer<ImGuiBaseComp>().event(flecs::OnAdd).each(ImGuiBaseRenderInit);
 
-  ecs.system<const InternalImGuiStart>("System::ImGuiNewFrame")
-      .kind(Phase::PreCameraUpdated)  // calling it in PreFrame just prevent the some
-                              // other system to call it in wrong frames
-      .each(NewFrame);
+  ecs.system<ImGuiBaseComp>("System::ImGuiNewFrame")
+      .kind(Phase::PreCameraUpdated)  // calling it in PreFrame just prevent the
+                                      // some other system to call it in wrong
+                                      // frames
+      .iter(NewFrame);
 
   ecs.system<InputController, ImGuiBaseComp>("System::ImGuiInputControl")
       .kind(Phase::PreCameraUpdated)
@@ -267,14 +271,13 @@ ImGuiRenderer::ImGuiRenderer(world &ecs) {
       .kind(Phase::PostFrame)
       .each(OnRender);
   ecs.entity("Entity::ImGuiStartFrameDriver").add<InternalImGuiStart>();
-  
-  
+
   ecs.entity("ImGuiRenderer")
       .add<ImGuiBaseComp>()
       .add<InputController>()
       .set<ShaderFile>(
           {"Shaders/ImGuiShader/Imgui.vs", "Shaders/ImGuiShader/Imgui.fs"});
-  
+
   ImGuiKeyMapReMapping();
 }
 

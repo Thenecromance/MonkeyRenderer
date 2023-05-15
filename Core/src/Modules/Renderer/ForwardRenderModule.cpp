@@ -47,7 +47,7 @@ ForwardRenderModule::ForwardRenderModule(world& ecs) {
   ecs.system<ForwardRenderComp>("ForwardRenderSystem")
       .kind(Phase::RenderStage)
       .iter(ForwardRenderSystemIter);
-  /*
+  /*//off screen render system
     ecs.system<ForwardRenderComp, const Program, const FrameBuffer>(
            "ForwardRenderOffscreen")
         .kind(Phase::RenderStage)
@@ -55,39 +55,41 @@ ForwardRenderModule::ForwardRenderModule(world& ecs) {
 }
 
 void ForwardRenderModule::CreateDefaultProgram() {
-  auto compiler = pWorld_->entity("ForwardDefaultShaderCompiler")
-                      .set<ShaderFile>({
-                          R"(Shaders\ForwardRender\Default.vert)",
-                          R"(Shaders\ForwardRender\Default.frag)",
-                      });  // this can be use as shader hot reload module
-  if (compiler.has<Program>()) {
-    auto program = compiler.get<Program>();
-    if (program->handle == 0) {
-      Logger::get<ForwardRenderModule>()->critical(
-          "ForwardRender default program compile failed");
-    }
+  defaultProgram_ = pWorld_->entity("ForwardDefaultShaderCompiler")
+                        .set<ShaderFile>({
+                            R"(Shaders\ForwardRender\Default.vert)",
+                            R"(Shaders\ForwardRender\Default.frag)",
+                        });  // this can be use as shader hot reload module
 
-    prefab_ = pWorld_->prefab("DefaultForwardRenderer")
-                  .set<Program>({program->handle})
-                  .add<FrameBuffer>();
+  auto program = defaultProgram_.get<Program>();
+  if (program->handle == 0) {
+    Logger::get<ForwardRenderModule>()->critical(
+        "ForwardRender default program compile failed");
   }
+
+  prefab_ = pWorld_->prefab("DefaultForwardRenderer")
+                .set<Program>({program->handle})
+                .add<FrameBuffer>();
 }
 
 void ForwardRenderModule::LoadComponent() {
-  pWorld_->component<ForwardRenderComp>()
-      .member<uint32_t>("DrawType");
+  pWorld_->component<ForwardRenderComp>().member<uint32_t>("DrawType");
 
   pWorld_->observer<ForwardRenderComp>("ForwardRenderInitialize")
       .event(flecs::OnAdd)
       //      .event(flecs::OnSet)
       .each([&](flecs::entity self, ForwardRenderComp& renderer) {
-        if (prefab_.is_alive())  // prefab is also an entity, so just use
-                                 // is_alive() to check it's create or not
-        {
+        // if user does not set the shader program, so just use the default one
+        Handle program_handle = 0;
+        if (self.has<Program>()) {
+          program_handle = self.get<Program>()->handle;
+        }
+
+        if (prefab_.is_alive()) {
           self.is_a(prefab_);
         } else {
           Logger::get<ForwardRenderModule>()->error(
-              "forward render prefab does not create");
+              "ForwardRenderModule prefab is not created");
         }
       });
 }

@@ -34,30 +34,26 @@ using namespace glm;
 using namespace Component;
 
 void OnRenderIter(flecs::iter& it, Mesh* meshes, DefferedRenderComp* render_) {
-  auto self = it.entity(0);
-
-  const auto render = self.get<DefferedRenderComp>();
-  const auto g_buffer = self.get<GBuffer>();
-
   const auto texture = it.entity(0).get<TextureHandle>();
+  auto render = render_[0];
 
   // geom pass
-  glBindFramebuffer(GL_FRAMEBUFFER, g_buffer->handle);
+  render.gbuffer.Bind();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glUseProgram(render->geomHandle);
+  glUseProgram(render.geomHandle);
   glBindTextures(0, 1, &texture->handle);
-
-  meshes[0].DrawInstance(GL_TRIANGLES,it.count());
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  meshes[0].DrawInstance(GL_TRIANGLES, it.count());
+  render.gbuffer.Unbind();
 }
 
 void GBufferBlit(flecs::entity self, GBuffer& buffer) {
-  glBindFramebuffer(GL_READ_BUFFER, buffer.handle);
+
+
+/*  glBindFramebuffer(GL_READ_BUFFER, buffer.handle);
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-  /*  glBlitFramebuffer(0, 0, g_buffer->width, g_buffer->height, 0, 0,
-                      g_buffer->width, g_buffer->height, GL_DEPTH_BUFFER_BIT,
-                      GL_NEAREST);*/
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBlitFramebuffer(0, 0, buffer.width, buffer.height, 0, 0, buffer.width,
+                    buffer.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);*/
 }
 
 void CreateTexture(Handle& handle, int width, int height,
@@ -133,18 +129,7 @@ DefferedRender::DefferedRender(flecs::world& ecs) {
   ecs.module<DefferedRender>();
   pWorld_ = &ecs;
 
-  {
-    //    defaultLightPass =
-    //        pWorld_->entity("DefferedRenderLightPass")
-    //            .set<ShaderFile>({"Shaders/DefferedRender/LightPass.vert",
-    //                              "Shaders/DefferedRender/LightPass.frag"});
-    defaultGeomPass =
-        pWorld_->entity("DefferedRenderGeomPass")
-            .set<ShaderFile>({"Shaders/DefferedRender/Geom.vert",
-                              "Shaders/DefferedRender/Geom.frag"});
-  }
-
-  InitializePrefab();
+  InitializeDefault();
   InitializeObserver();
   InitializeComponent();
   ImportSystem();
@@ -170,12 +155,48 @@ void DefferedRender::InitializeObserver() {
   pWorld_->observer<DefferedRenderComp>("DefferedRenderCompObserver")
       .event(flecs::OnAdd)
       .each([&](flecs::entity self, DefferedRenderComp& render) {
+        defaultGbuffer.enable();
         render.geomHandle = defaultGeomPass.get<Program>()->handle;
-        self.is_a(preFab_);
+        //        render.lightHandle = defaultLightPass.get<Program>()->handle;
+        render.gbuffer = *defaultGbuffer.get<GBuffer>();
       });
 }
 
-void DefferedRender::InitializePrefab() {
+void DefferedRender::ImportSystem() {
+  PTR_ASSERT(pWorld_);
+
+  pWorld_->system<Mesh, DefferedRenderComp>("GeometryPass")
+      .kind(Phase::RenderStage)
+      .iter([&](flecs::iter& it, Mesh* meshes, DefferedRenderComp* render_) {
+        auto self = it.entity(0);
+
+        const auto render = self.get<DefferedRenderComp>();
+        const auto g_buffer = self.get<GBuffer>();
+
+        const auto texture = it.entity(0).get<TextureHandle>();
+
+        // geom pass
+        defaultGbuffer.get_ref<GBuffer>()->Bind();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glUseProgram(render->geomHandle);
+        glBindTextures(0, 1, &texture->handle);
+
+        meshes[0].DrawInstance(GL_TRIANGLES, it.count());
+        defaultGbuffer.get_ref<GBuffer>()->Unbind();
+      });
+
+  //  // so far have not build the LightPass, of course this issue is I still
+  //  can't decide how to let the light module work with a better way
+  //  pWorld_->system<GBuffer>("BlitToScreen")
+  //      .kind(Phase::BlitRender)
+  //      .each(GBufferBlit);
+
+  pWorld_->system<GBuffer>("GBufferDebugUI")
+      .kind(Phase::ImGuiRender)
+      .each(GBufferUI);
+}
+
+void DefferedRender::InitializeDefault() {
   PTR_ASSERT(pWorld_);
 
   GBuffer buffer;
@@ -183,33 +204,18 @@ void DefferedRender::InitializePrefab() {
   defaultGbuffer =
       pWorld_->entity("GloabalGBuffer")
           .set<GBuffer>({buffer});  // here should be trigger the observer
+  defaultGbuffer.disable();
 
-  // clang-format off
-  preFab_ = pWorld_->prefab("DefferedRenderPrefab")
-                .set<GBuffer>(
-                    {
-                        buffer
-                    });  // use prefab to made each entity
-                                              // has the same gbuffer as default
-  // clang-format on
-}
-
-void DefferedRender::ImportSystem() {
-  PTR_ASSERT(pWorld_);
-
-  pWorld_->system<Mesh, DefferedRenderComp>("DefferedRenderOnUpdate")
-      .kind(Phase::RenderStage)
-      .iter(OnRenderIter);
-
-  // so far don't need to blit to screen
-  /*
-    pWorld_->system<GBuffer>("BlitToScreen")
-        .kind(Phase::BlitRender)
-        .iter(GBufferBlit); */
-
-  pWorld_->system<GBuffer>("GBufferDebug")
-      .kind(Phase::ImGuiRender)
-      .each(GBufferUI);
+  {
+    //    defaultLightPass =
+    //        pWorld_->entity("DefferedRenderLightPass")
+    //            .set<ShaderFile>({"Shaders/DefferedRender/LightPass.vert",
+    //                              "Shaders/DefferedRender/LightPass.frag"});
+    defaultGeomPass =
+        pWorld_->entity("DefferedRenderGeomPass")
+            .set<ShaderFile>({"Shaders/DefferedRender/Geom.vert",
+                              "Shaders/DefferedRender/Geom.frag"});
+  }
 }
 
 MOD_END(DefferedRender)

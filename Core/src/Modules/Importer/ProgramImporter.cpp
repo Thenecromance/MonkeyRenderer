@@ -127,6 +127,8 @@ ProgramModule::ProgramModule(world& ecs) {
     ecs.observer<Shader>().event(flecs::OnRemove).each(ShaderOnRemove);
   }
   { ecs.observer<Program>().event(flecs::OnRemove).each(ProgramOnRemove); }
+
+  { ecs.component<Program>().member<Handle>("handle"); }
 }
 
 void AddIncludePathWatcher(const ShaderFile* ShaderFiles,
@@ -305,6 +307,7 @@ ShaderHotReloadModule::ShaderHotReloadModule(world& ecs) {
         //        self.add<ShaderFileWatcher>();
         self.remove<ShaderFileWatcher>();
       });
+
   ecs.observer<ShaderFileWatcher>("ShaderWatcher")
       .event(flecs::OnAdd)
       .each(AddShaderWatcher);

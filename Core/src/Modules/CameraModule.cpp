@@ -11,6 +11,7 @@
 #include <Phases.hpp>
 
 #include "CameraComponent.hpp"
+#include "GlobalValue.hpp"
 #include "ImGuiComponentDraw.hpp"
 #include "InputComponents.hpp"
 #include "Logger.hpp"
@@ -165,8 +166,9 @@ void PerFrameDataInit(PerFrameDataComp &comp) {
   glCreateBuffers(1, &comp.buffer);
   glNamedBufferStorage(comp.buffer, sizePerFrameDataComp - sizeof(Handle),
                        nullptr, GL_DYNAMIC_STORAGE_BIT);
-  glBindBufferRange(GL_UNIFORM_BUFFER, 0, comp.buffer, 0,
-                    sizePerFrameDataComp - sizeof(Handle));
+
+  glBindBufferRange(GL_UNIFORM_BUFFER, Uniform::BindingLocation::ePerFrameData,
+                    comp.buffer, 0, sizePerFrameDataComp - sizeof(Handle));
 }
 void PerFrameDataUpdate(PerFrameDataComp &comp,
                         const CameraComponent &camComp) {
@@ -179,6 +181,7 @@ void PerFrameDataUpdate(PerFrameDataComp &comp,
   comp.projection =
       glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
   comp.cameraPos = glm::vec4(camComp.v3Position.value, 1.0f);
+
   glNamedBufferSubData(comp.buffer, 0, sizePerFrameDataComp - sizeof(Handle),
                        &comp);
 }

@@ -10,14 +10,13 @@ class DefferedRender {
   explicit DefferedRender(flecs::world& ecs);
   void InitializeComponent();
   void InitializeObserver();
-  void InitializePrefab();
+  void InitializeDefault();
   void ImportSystem();
 
  private:
   flecs::entity defaultGbuffer{};
   flecs::entity defaultLightPass{};
   flecs::entity defaultGeomPass{};
-  flecs::entity preFab_{};
   flecs::world* pWorld_{};
 };
 MOD_END(DefferedRender)

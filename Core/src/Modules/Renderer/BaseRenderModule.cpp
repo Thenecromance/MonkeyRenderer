@@ -102,9 +102,7 @@ void OnBaseRenderer(entity e, BaseRenderComp& render) {
   glUseProgram(render.handle);
   glBindVertexArray(render.vao);
 
-  // typedef void (APIENTRYP PFNGLDRAWARRAYSINSTANCEDBASEINSTANCEPROC)(GLenum
-  // mode, GLint first, GLsizei count, GLsizei instancecount, GLuint
-  // baseinstance);
+
   glDrawArraysInstancedBaseInstance(render.drawType /*GL_TRIANGLES*/, 0, 3, 1,
                                     0);
 
@@ -119,8 +117,7 @@ void RemoveOtherRenderer(entity self, BaseRenderComp& render) {
 
 BaseRender::BaseRender(world& ecs) {
   ecs.module<BaseRender>();
-  
-  
+
   ecs.component<FrameBuffer>()
       .member<Handle>("handle")
       .member<Handle>("colorHandle")

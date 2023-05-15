@@ -8,9 +8,9 @@
 COMP_BGN(LightComp)
 
 struct PointLight {
-  glm::vec3 position;
-  glm::vec3 color;
-  float intensity;
+  glm::vec3 position{}; // instead of using PositionComp just for convinience to upload the data to GPU
+  glm::vec3 color   {};
+  float intensity   {};
 };
 SIZE_OF(PointLight)
 
@@ -22,11 +22,11 @@ struct DirectionalLight {
 SIZE_OF(DirectionalLight)
 
 struct SpotLight {
-  glm::vec3 position;
-  glm::vec3 direction;
-  glm::vec3 color;
-  float intensity;
-  float cutoff;
+  glm::vec3 position  {};
+  glm::vec3 direction {};
+  glm::vec3 color     {};
+  float intensity     {};
+  float cutoff        {};
 };
 SIZE_OF(SpotLight)
 

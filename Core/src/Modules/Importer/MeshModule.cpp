@@ -14,6 +14,7 @@
 #include <glm/glm.hpp>
 #include <vector>
 
+#include "GlobalValue.hpp"
 #include "Logger.hpp"
 #include "MeshComp.hpp"
 #include "Position.hpp"
@@ -22,19 +23,22 @@
 COMP_BGN(Mesh)
 void Mesh::DrawElement(unsigned int mode) const {
   glBindVertexArray(vao);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, Vertices);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
+                   Uniform::BindingLocation::eVertices, Vertices);
   glDrawElements(mode, static_cast<GLsizei>(numIndices), GL_UNSIGNED_INT,
                  nullptr);
 }
 
 void Mesh::DrawArrays(unsigned int mode, int first, int count) const {
   glBindVertexArray(vao);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, Vertices);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
+                   Uniform::BindingLocation::eVertices, Vertices);
   glDrawArrays(mode, first, count);
 }
 void Mesh::DrawInstance(unsigned int mode, unsigned int instanceCount) const {
   glBindVertexArray(vao);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, Vertices);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
+                   Uniform::BindingLocation::eVertices, Vertices);
   glDrawElementsInstanced(mode, static_cast<GLsizei>(numIndices),
                           GL_UNSIGNED_INT, nullptr, instanceCount);
 }
@@ -42,6 +46,8 @@ COMP_END(Mesh)
 MOD_BGN(MeshModule)
 
 using namespace Monkey::Component;
+
+entity MeshModule::MeshPrefab = {};
 
 void ConvertAIMesh(const aiMesh* mesh, MeshData& out) {
   const bool hasTexCoords = mesh->HasTextureCoords(0);
@@ -127,10 +133,10 @@ void LoadMeshDataToGPU(flecs::entity e, MeshData& data) {
       sizeof(glm::vec3) + sizeof(glm::vec3) + sizeof(glm::vec2));
   // position
   glEnableVertexArrayAttrib(mesh.vao, 0);
-  glVertexArrayAttribFormat(
-      mesh.vao, 0, 3, GL_FLOAT, GL_FALSE,
-      0);  //(GLuint vaobj, GLuint attribindex, GLint size, GLenum type,
-           // GLboolean normalized, GLuint relativeoffset);
+  glVertexArrayAttribFormat(mesh.vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+
+  // glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size,
+  // GLenum type,GLboolean normalized, GLuint relativeoffset);
   glVertexArrayAttribBinding(mesh.vao, 0, 0);
   // uv
   glEnableVertexArrayAttrib(mesh.vao, 1);
@@ -146,14 +152,7 @@ void LoadMeshDataToGPU(flecs::entity e, MeshData& data) {
   e.set<Mesh>({mesh});
 }
 
-void InitMesh(flecs::entity self, Mesh& mesh) {
-  if (self.has<BaseRenderComp>() || self.has<ForwardRenderComp>() ||
-      self.has<DefferedRenderComp>()) {
-    return;
-  }
-  self.add<ForwardRenderComp>();
-  self.add<Position>().add<Rotation>().add<Scale>();
-}
+// void InitMesh(flecs::entity self, Mesh& mesh) {}
 
 void RegisterComponent(world& ecs) {
   //  ecs.component<MeshFile>().member<std::string>("path");
@@ -166,16 +165,35 @@ void RegisterComponent(world& ecs) {
 }
 
 MeshModule::MeshModule(world& ecs) {
+  ecs.module<MeshModule>();
+  pWorld_ = &ecs;
   RegisterComponent(ecs);
-  ecs.observer<MeshFile>("observer::MeshFileOnSet")
-      .event(flecs::OnSet)
-      .each(LoadMesh);
 
-  ecs.observer<MeshData>("observer::MeshDataOnSet")
-      .event(flecs::OnSet)
-      .each(LoadMeshDataToGPU);
+  MeshPrefab = pWorld_->prefab("BasicMesh")
+                   .override<Position>()
+                   .override<Rotation>()
+                   .override<Scale>()
+                   .override<ForwardRenderComp>();
 
-  ecs.observer<Mesh>("observer::MeshOnSet").event(flecs::OnSet).each(InitMesh);
+  {
+    ecs.observer<MeshFile>("observer::MeshFileOnSet")
+        .event(flecs::OnSet)
+        .each(LoadMesh);
+
+    ecs.observer<MeshData>("observer::MeshDataOnSet")
+        .event(flecs::OnSet)
+        .each(LoadMeshDataToGPU);
+  }
+
+  ecs.observer<Mesh>("observer::MeshOnSet")
+      .event(flecs::OnSet)
+      .each([&](flecs::entity self, Mesh& mesh) {
+        /*        if (self.has<BaseRenderComp>() ||
+           self.has<ForwardRenderComp>() || self.has<DefferedRenderComp>()) {
+                  return;
+                }*/
+        self.is_a(MeshPrefab);
+      });
 }
 
 MOD_END(MeshModule)

@@ -18,6 +18,7 @@ class ForwardRenderModule {
 
  private:
   flecs::entity prefab_;
+  flecs::entity defaultProgram_;
   flecs::world* pWorld_;
 
   //  Handle defaultProgram_;
