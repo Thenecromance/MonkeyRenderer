@@ -11,12 +11,17 @@ class LightModule {
   void InitializeComponent();
   void InitializeObserver();
   void InitializeSystem();
-  
-  
+
  private:
   void CreateLightBuffers();
+
  private:
   flecs::world* pWorld_{};
+  int poolSize{100};
+
+  unsigned int PointLightBufferGroup{};
+  unsigned int DirectionLightBufferGroup{};
+  unsigned int SpotLightBufferGroup{};
 };
 
 MOD_END(LightModule)

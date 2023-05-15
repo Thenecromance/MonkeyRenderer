@@ -64,18 +64,18 @@ void PostProcessOnRender(PostProcess& process, FrameBuffer& buffer) {
 }
 
 void DebugUI(PostProcess& process, FrameBuffer& buffer) {
-  ImGui::Begin("PostProcess");
-//  const int size = process.backupHandles.size();
-//  static int selected = -1;
-//  for (int i = 0; i < size; ++i) {
-//    char buf[32];
-//    sprintf(buf, "Shader %d", i);
-//    if (ImGui::Selectable(buf, selected == i)) {
-//      selected = i;
-//      process.handle = process.backupHandles[i];
-//    }
-//  }
-  ImGui::End();
+//  ImGui::Begin("PostProcess");
+////  const int size = process.backupHandles.size();
+////  static int selected = -1;
+////  for (int i = 0; i < size; ++i) {
+////    char buf[32];
+////    sprintf(buf, "Shader %d", i);
+////    if (ImGui::Selectable(buf, selected == i)) {
+////      selected = i;
+////      process.handle = process.backupHandles[i];
+////    }
+////  }
+//  ImGui::End();
 
   ImGui::Begin("FrameBuffer");
   ImGui::Text("Color buffer \nColor Handle: %d", buffer.colorHandle);
