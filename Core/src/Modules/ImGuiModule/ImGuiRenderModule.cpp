@@ -19,7 +19,6 @@
 
 using namespace Monkey::Component;
 
-struct InternalImGuiStart {};
 MOD_BGN(ImGuiRenderer)
 void OnRender(const ImGuiBaseComp &comp, const Program &program) {
   ImGui::Render();
@@ -270,7 +269,6 @@ ImGuiRenderer::ImGuiRenderer(world &ecs) {
   ecs.system<const ImGuiBaseComp, const Program>("System::ImGuiRenderer")
       .kind(Phase::PostFrame)
       .each(OnRender);
-  ecs.entity("Entity::ImGuiStartFrameDriver").add<InternalImGuiStart>();
 
   ecs.entity("ImGuiRenderer")
       .add<ImGuiBaseComp>()

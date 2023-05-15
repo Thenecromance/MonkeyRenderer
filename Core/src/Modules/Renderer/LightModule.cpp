@@ -4,9 +4,6 @@
 #include <glad/glad.h>
 #include <imgui.h>
 
-#include <OpenGLApp.hpp>
-#include <glm/ext.hpp>
-#include <glm/glm.hpp>
 
 #include "GlobalValue.hpp"
 #include "LightComp.hpp"

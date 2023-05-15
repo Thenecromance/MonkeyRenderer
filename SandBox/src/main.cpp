@@ -39,7 +39,28 @@ void CreateCamera(world &ecs) {
            .isActiveCamera = true})
       .add<Component::InputController>();
 }
+void AddLights(world &ecs) {
+  ecs.entity("PointLight0").add<Component::PointLight>();
+  ecs.entity("PointLight1").add<Component::PointLight>();
+  ecs.entity("PointLight2").add<Component::PointLight>();
+  ecs.entity("PointLight3").add<Component::PointLight>();
+  ecs.entity("PointLight4").add<Component::PointLight>();
+  ecs.entity("PointLight5").add<Component::PointLight>();
+  ecs.entity("PointLight6").add<Component::PointLight>();
 
+  ecs.entity("DirectionalLight0").add<Component::DirectionalLight>();
+  ecs.entity("DirectionalLight1").add<Component::DirectionalLight>();
+  ecs.entity("DirectionalLight2").add<Component::DirectionalLight>();
+  ecs.entity("DirectionalLight3").add<Component::DirectionalLight>();
+  ecs.entity("DirectionalLight4").add<Component::DirectionalLight>();
+  ecs.entity("DirectionalLight5").add<Component::DirectionalLight>();
+  ecs.entity("DirectionalLight6").add<Component::DirectionalLight>();
+  ecs.entity("DirectionalLight7").add<Component::DirectionalLight>();
+  ecs.entity("DirectionalLight8").add<Component::DirectionalLight>();
+  ecs.entity("DirectionalLight9").add<Component::DirectionalLight>();
+
+  ecs.entity("SpotLight0").add<Component::SpotLight>();
+}
 void MeshTest(world &ecs) {
   auto duck =
       ecs.entity("RubberDuck")
@@ -106,23 +127,26 @@ int main() {
 
   Core::GetInstance()
       ->Import<Module::InputModule>()  // input operation
-      .Import <Module::CameraModule>()  // camera operation
-      .Import <Module::TransformModule>()
-      .Import <Module::ProgramModule>()          // shader program loader
-      .Import <Module::ShaderHotReloadModule>()  // shader hot reload module
-      .Import <Module::MeshModule>()
-      .Import <Module::TextureModule>()
-      .Import <Module::LightModule>()  // Light module , still working on it
-      .Import <Module::BaseRender>()   // Render sections
-      .Import <Module::ForwardRenderModule>()       // Render sections
-      .Import <Module::DefferedRender>()            // Render sections
-      .Import <Module::GridModule>()                // grid
-      .Import <Module::ImGuiRenderer>()             // ImGuiRenderer
-      .Import <Module::AntiAliasingConfigModule>()  // AA control
+      .Import<Module::CameraModule>()  // camera operation
+      .Import<Module::TransformModule>()
+      .Import<Module::ProgramModule>()          // shader program loader
+      .Import<Module::ShaderHotReloadModule>()  // shader hot reload module
+      .Import<Module::MeshModule>()
+      .Import<Module::TextureModule>()
+      .Import<Module::LightModule>()  // Light module , still working on it
+      .Import<Module::BaseRender>()   // Render sections
+      .Import<Module::ForwardRenderModule>()       // Render sections
+      .Import<Module::DefferedRender>()            // Render sections
+      .Import<Module::GridModule>()                // grid
+      .Import<Module::ImGuiRenderer>()             // ImGuiRenderer
+      .Import<Module::AntiAliasingConfigModule>()  // AA control
       ;
 
   CreateCamera(Core::GetInstance()->GetWorld());
   MeshTest(Core::GetInstance()->GetWorld());
+  AddLights(Core::GetInstance()->GetWorld());
+  
+  
   while (Core::GetInstance()->OnUpdate())
     ;
 
