@@ -15,3 +15,6 @@
 #define DLL_IMPORT __declspec(dllimport)
 #endif
 #endif  // defined(_MSC_VER)
+
+
+#define USING(nspc) using namespace nspc;

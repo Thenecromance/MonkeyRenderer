@@ -14,6 +14,8 @@
 #include "ShaderComp.hpp"
 
 MOD_BGN(ProgramModule)
+using namespace Monkey::Component;  // import Component
+
 bool CheckLinkStatus(Handle handle) {
   // check link program is success or not
   GLint success;

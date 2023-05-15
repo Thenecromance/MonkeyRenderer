@@ -1,9 +1,10 @@
 #pragma once
 
 #include <string>
-
+#include "Marcos/Marcos.hpp"
 #include "CommonDef.hpp"
 
+COMP_BGN(Texture)
 /// @brief Texture file
 struct Texture {
   std::string path{};
@@ -30,3 +31,6 @@ struct Material {
 
   Handle emissive{};
 };
+
+
+COMP_END(Texture)

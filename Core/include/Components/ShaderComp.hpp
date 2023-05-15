@@ -4,6 +4,9 @@
 #include <vector>
 
 #include "CommonDef.hpp"
+#include "Marcos/Marcos.hpp"
+
+COMP_BGN(Shader)
 
 struct Shader {
   Handle vertexHandle{0};
@@ -58,3 +61,5 @@ struct ShaderFileWatcher {
 struct Program {
   Handle handle;
 };
+
+COMP_END(Shader)

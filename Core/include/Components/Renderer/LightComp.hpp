@@ -4,34 +4,35 @@
 
 #include "Job.hpp"
 #include "Marcos/Marcos.hpp"
-
+//@section-start
 COMP_BGN(LightComp)
-
+USING(glm)
 struct PointLight {
-  glm::vec3 position{}; // instead of using PositionComp just for convinience to upload the data to GPU
-  glm::vec3 color   {};
-  float intensity   {};
+  vec3 position;  // instead of using PositionComp just for convinience to
+                  // upload the data to GPU
+  vec3 color;
+  float intensity;
 };
 SIZE_OF(PointLight)
 
 struct DirectionalLight {
-  glm::vec3 direction;
-  glm::vec3 color;
+  vec3 direction;
+  vec3 color;
   float intensity;
 };
 SIZE_OF(DirectionalLight)
 
 struct SpotLight {
-  glm::vec3 position  {};
-  glm::vec3 direction {};
-  glm::vec3 color     {};
-  float intensity     {};
-  float cutoff        {};
+  vec3 position;
+  vec3 direction;
+  vec3 color;
+  float intensity;
+  float cutoff;
 };
 SIZE_OF(SpotLight)
 
 struct LightTransform {
-  glm::mat4 projection{};
-  glm::mat4 matrices{};
+  mat4 projection;
+  mat4 matrices;
 };
 COMP_END(LightComp)

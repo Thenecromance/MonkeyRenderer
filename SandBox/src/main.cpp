@@ -40,30 +40,32 @@ void CreateCamera(world &ecs) {
       .add<Component::InputController>();
 }
 void AddLights(world &ecs) {
-  ecs.entity("PointLight0").add<Component::PointLight>();
-  ecs.entity("PointLight1").add<Component::PointLight>();
-  ecs.entity("PointLight2").add<Component::PointLight>();
-  ecs.entity("PointLight3").add<Component::PointLight>();
-  ecs.entity("PointLight4").add<Component::PointLight>();
-  ecs.entity("PointLight5").add<Component::PointLight>();
-  ecs.entity("PointLight6").add<Component::PointLight>();
+  ecs.entity("LightGroup::PointLight0").add<Component::PointLight>();
+  ecs.entity("LightGroup::PointLight1").add<Component::PointLight>();
+  ecs.entity("LightGroup::PointLight2").add<Component::PointLight>();
+  ecs.entity("LightGroup::PointLight3").add<Component::PointLight>();
+  ecs.entity("LightGroup::PointLight4").add<Component::PointLight>();
 
-  ecs.entity("DirectionalLight0").add<Component::DirectionalLight>();
-  ecs.entity("DirectionalLight1").add<Component::DirectionalLight>();
-  ecs.entity("DirectionalLight2").add<Component::DirectionalLight>();
-  ecs.entity("DirectionalLight3").add<Component::DirectionalLight>();
-  ecs.entity("DirectionalLight4").add<Component::DirectionalLight>();
-  ecs.entity("DirectionalLight5").add<Component::DirectionalLight>();
-  ecs.entity("DirectionalLight6").add<Component::DirectionalLight>();
-  ecs.entity("DirectionalLight7").add<Component::DirectionalLight>();
-  ecs.entity("DirectionalLight8").add<Component::DirectionalLight>();
-  ecs.entity("DirectionalLight9").add<Component::DirectionalLight>();
+  ecs.entity("LightGroup::DirectionalLight0")
+      .add<Component::DirectionalLight>();
+  ecs.entity("LightGroup::DirectionalLight1")
+      .add<Component::DirectionalLight>();
+  ecs.entity("LightGroup::DirectionalLight2")
+      .add<Component::DirectionalLight>();
+  ecs.entity("LightGroup::DirectionalLight3")
+      .add<Component::DirectionalLight>();
+  ecs.entity("LightGroup::DirectionalLight4")
+      .add<Component::DirectionalLight>();
 
-  ecs.entity("SpotLight0").add<Component::SpotLight>();
+  ecs.entity("LightGroup::SpotLight0").add<Component::SpotLight>();
+  ecs.entity("LightGroup::SpotLight1").add<Component::SpotLight>();
+  ecs.entity("LightGroup::SpotLight2").add<Component::SpotLight>();
+  ecs.entity("LightGroup::SpotLight3").add<Component::SpotLight>();
+  ecs.entity("LightGroup::SpotLight4").add<Component::SpotLight>();
 }
 void MeshTest(world &ecs) {
   auto duck =
-      ecs.entity("RubberDuck")
+      ecs.entity("MeshGroup::RubberDuckBase")
           // set model path
           .set<MeshFile>({.path = R"(data\rubber_duck\scene.gltf)"})
           // set texture path
@@ -105,8 +107,8 @@ void MeshTest(world &ecs) {
   // lot of time on the CPU to upload the data to dashboard , caused the low fps
   for (int x = 0; x < 50; ++x) {
     for (int y = 0; y < 50; ++y) {
-      std::string name =
-          "RubberDuck_x" + std::to_string(x) + "y" + std::to_string(y);
+      std::string name = "MeshGroup::CopyMesh::RubberDuck_x" +
+                         std::to_string(x) + "y" + std::to_string(y);
 
       ecs.entity(name.c_str())
           .set<Mesh>({*duck.get<Mesh>()})
@@ -118,7 +120,7 @@ void MeshTest(world &ecs) {
           ;
     }
   }
-  //   duck.disable();
+  duck.disable();
 }
 int main() {
   Core::GetInstance()->Initialize(196, 8);
@@ -145,8 +147,7 @@ int main() {
   CreateCamera(Core::GetInstance()->GetWorld());
   MeshTest(Core::GetInstance()->GetWorld());
   AddLights(Core::GetInstance()->GetWorld());
-  
-  
+
   while (Core::GetInstance()->OnUpdate())
     ;
 

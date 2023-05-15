@@ -11,6 +11,8 @@
 #include "Logger.hpp"
 #include "ShaderOperator.hpp"
 
+COMP_BGN(Shader)
+
 Shader ShaderFile::Compile() {
   Shader result;
   if (!vertexShader.empty()) {
@@ -77,7 +79,6 @@ Handle ShaderFile::CompileShader(unsigned int&& type, const std::string& src,
   glShaderSource(handle, 1, &data, nullptr);
   glCompileShader(handle);
   if (CheckCompileStatus(handle)) {
-   
     return handle;
   }
   Logger::get<ShaderFile>()->info("{}", src);
@@ -101,3 +102,5 @@ std::string ShaderFile::ReadSource(const std::string& file_path) {
   ShaderOperator op(file_path);
   return op.ReadSource(includePaths);
 }
+
+COMP_END(Shader)

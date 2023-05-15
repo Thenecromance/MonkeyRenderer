@@ -1,6 +1,7 @@
 //
 #version 460 core
 #include <CommonHeader.h>
+#include <Light.hpp>
 //
 
 layout (std140, binding = 0) uniform PerFrameData

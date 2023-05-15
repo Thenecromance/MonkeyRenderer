@@ -9,22 +9,19 @@
 #include "Logger.hpp"
 #include "Texture.hpp"
 MOD_BGN(TextureModule)
+
+using namespace Monkey::Component;
+
 /// @brief Load texture from file and upload to GPU instantly
 /// @param path the file path
 /// @param type GL_TEXTURE_2D as default
 /// @param handle texture handle
-void LoadByStb(std::string& path, unsigned int type, Handle& handle) {
+void LoadBySTB(std::string& path, unsigned int type, Handle& handle) {
   int width, height, nrChannels;
   stbi_set_flip_vertically_on_load(true);
   unsigned char* data =
       stbi_load(path.c_str(), &width, &height, &nrChannels, 0);
   if (data) {
-    /* glCreateTextures(1, &handle);
-     glBindTexture(type, handle);
-     glTexImage2D(type, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE,
-                  data);
-     glGenerateMipmap(type);*/
-
     glCreateTextures(type, 1, &handle);
     glTextureParameteri(handle, GL_TEXTURE_MAX_LEVEL, 0);
     glTextureParameteri(handle, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -47,7 +44,7 @@ void LoadTexture(flecs::entity self, Texture& tex) {
   if (tex.path.empty()) {
     tex.path = "Resources/Textures/Default.png";
   }
-  LoadByStb(tex.path, tex.loadType, handle);
+  LoadBySTB(tex.path, tex.loadType, handle);
 
   if (handle == 0) {
     Logger::get<TextureModule>()->info("Failed to load texture:{}", tex.path);
@@ -77,8 +74,7 @@ void TextureModule::LoadObserver(world& ecs) {
 }
 
 void TextureModule::RegisterComponent(world& ecs) {
-
   ecs.component<TextureHandle>().member<Handle>("handle").member<unsigned int>(
-      "type")      ;
+      "type");
 }
 MOD_END(TextureModule)
