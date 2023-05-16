@@ -195,7 +195,7 @@ class ShaderPreProcessor {
     }
   }
 
-  void SaveTo(std::string dir) {
+  void SaveTo(std::string& dir) {
     for (auto& [file_path, shader] : m_shaderFiles) {
       std::filesystem::path path(file_path);
       //      std::cout << path.parent_path().string() << std::endl;

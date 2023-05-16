@@ -14,7 +14,7 @@ class DefferedRender {
   void ImportSystem();
 
  private:
-  flecs::entity defaultGbuffer{};
+  flecs::entity prefab_{};
   flecs::entity defaultLightPass{};
   flecs::entity defaultGeomPass{};
   flecs::world* pWorld_{};

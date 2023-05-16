@@ -11,9 +11,6 @@ auto main(int argc, const char** argv) -> int {
   std::string originalPath = argv[1];
   std::string outputPath = argv[2];
 
-  std::cout << originalPath << std::endl;
-  std::cout << outputPath << std::endl;
-
   std::cout << "ShaderPreProcessor Initialize\n";
   ShaderPreProcessor processor(originalPath);
   processor.Process();

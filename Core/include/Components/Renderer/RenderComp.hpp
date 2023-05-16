@@ -61,8 +61,8 @@ struct GBuffer {
 
   int width{};
   int height{};
-  void Bind();
-  void Unbind();
+  void Bind() const;
+  void Unbind() const;
 };
 SIZE_OF(GBuffer);
 
@@ -98,11 +98,9 @@ SIZE_OF(SSAO);
 
 #pragma endregion
 
-
-
 struct BaseRenderComp {
   Handle handle{};
-  
+
   Handle vao{};
   unsigned int drawType{0x0004};
 };
@@ -117,8 +115,6 @@ SIZE_OF(ForwardRenderComp);
 struct DefferedRenderComp {
   Handle geomHandle{};
   Handle lightHandle{};
-
-  GBuffer gbuffer{};
 };
 SIZE_OF(DefferedRenderComp);
 

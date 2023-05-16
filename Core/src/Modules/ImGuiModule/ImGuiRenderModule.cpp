@@ -47,8 +47,7 @@ void OnRender(const ImGuiBaseComp &comp, const Program &program) {
   //  glNamedBufferSubData (GLuint buffer, GLintptr offset, GLsizeiptr size,
   //  const void *data)
   int width, height;
-  /*glfwGetWindowSize((GLFWwindow *)OpenGLApp::GetInstance()->GetWindow(),
-     &width, &height);*/
+
   OpenGLApp::GetInstance()->GetWindowSize(width, height);
 
   for (int n = 0; n < draw_data->CmdListsCount; n++) {
@@ -262,7 +261,6 @@ ImGuiRenderer::ImGuiRenderer(world &ecs) {
                                       // frames
       .iter(NewFrame);
 
-  
   ecs.system<InputController, ImGuiBaseComp>("System::ImGuiInputControl")
       .kind(Phase::PreCameraUpdated)
       .each(HandleInput);
@@ -270,15 +268,11 @@ ImGuiRenderer::ImGuiRenderer(world &ecs) {
   ecs.system<const ImGuiBaseComp, const Program>("System::ImGuiRenderer")
       .kind(Phase::PostFrame)
       /*      .run([](flecs::iter_t *it) {
-              int width, height;
-              OpenGLApp::GetInstance()->GetWindowSize(width, height);
-              ImGuiIO &io = ImGui::GetIO();
-              io.DisplaySize = ImVec2((float)width, (float)height);
-              ImGui::NewFrame();
-
-              while (ecs_iter_next(it)) {
-                it->callback(it);
-              }
+              ImGui::Begin("FrameCounter");
+              ImGui::Text("Frame: %f", it->delta_time);
+              ImGui::Text("FPS: %f", 1.0f / it->delta_time);
+              ImGui::End();
+              while (ecs_iter_next(it)) it->callback(it);
             })*/
       .each(OnRender);
 
@@ -287,7 +281,6 @@ ImGuiRenderer::ImGuiRenderer(world &ecs) {
       .add<InputController>()
       .set<ShaderFile>(
           {"Shaders/ImGuiShader/Imgui.vert", "Shaders/ImGuiShader/Imgui.frag"});
-
   ImGuiKeyMapReMapping();
 }
 

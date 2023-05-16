@@ -66,47 +66,16 @@ void AddLights(world &ecs) {
 void MeshTest(world &ecs) {
   auto duck =
       ecs.entity("MeshGroup::RubberDuckBase")
-          // set model path
           .set<MeshFile>({.path = R"(data\rubber_duck\scene.gltf)"})
-          // set texture path
           .set<Texture>(
               {.path = R"(data\rubber_duck\textures\Duck_baseColor.png)"})
-          .add<Transform>()  // add transform component
+          .add<Transform>()
           .add<DefferedRenderComp>()
-          .disable<ForwardRenderComp>()
-      //              .set<Program>({}) // if need to use other shader program,
-      //              just declare it here
-      ;
-
-  //  //after Model Initialize this object structure will looked like
-  //  class duck{
-  //    std::string name;
-  //
-  //    MeshFile file ;             // local file path
-  //    MeshData data ;             // loaded mesh data
-  //    Mesh mesh ;                 // when the data is uploaded to GPU, mesh
-  //    will save each handle info
-  //
-  //    Texture texture ;           // Texture file path which is saved in local
-  //    memory TextureHandle handle ;      // Texture in GPU
-  //
-  //    Position position;          // Model base info
-  //    Rotation rotation;          // Model base info
-  //    Scale scale ;               // Model base info
-  //
-  //    Transform transform;        // Transform matrix the reason to split from
-  //    the Transform group is mainly for update the transform matrix in 1 call
-  //    TransformGroup groups;      // all the transform matrix will be stored
-  //    in this group
-  //
-  //    ForwardRenderComp render;   // render type decide the render section
-  //    Program program;            // shader program
-  //  };
-
+          .disable<ForwardRenderComp>();
   // when using the core::EnableRest() , a large multi draw will spend a
   // lot of time on the CPU to upload the data to dashboard , caused the low fps
-  for (int x = 0; x < 50; ++x) {
-    for (int y = 0; y < 50; ++y) {
+  for (int x = 0; x < 5; ++x) {
+    for (int y = 0; y < 5; ++y) {
       std::string name = "MeshGroup::CopyMesh::RubberDuck_x" +
                          std::to_string(x) + "y" + std::to_string(y);
 
@@ -115,9 +84,9 @@ void MeshTest(world &ecs) {
           .set<TextureHandle>({*duck.get<TextureHandle>()})
           .set<Position>({{x * 2.0f, 0.0f, y * 2.0f}})
           .add<Transform>()
-          //          .disable<ForwardRenderComp>()
-          //          .add<DefferedRenderComp>()
-          ;
+          .remove<ForwardRenderComp>()
+          .add<DefferedRenderComp>()
+              ;
     }
   }
   duck.disable();

@@ -16,6 +16,7 @@ MOD_BGN(TransformModule)
 
 using namespace Component;
 
+/// this method still has lots of ways to impove the performance, but not now :(
 void TransformIter(flecs::iter& it, Transform* transform, Position* position_,
                    Scale* scale_, Rotation* rotation_) {
   auto self = it.entity(0);
@@ -30,8 +31,8 @@ void TransformIter(flecs::iter& it, Transform* transform, Position* position_,
   auto group = self.get<TransformGroup>();
 
   for (auto row : it) {
-    float angle_ = rotation_[row].angle;
     // clang-format off
+  float angle_ = rotation_[row].angle;
   const glm::mat4 scale = glm::scale(glm::mat4(1.0f), scale_[row].value);
   const glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(angle_), rotation_[row].value);
   const glm::mat4 pos = glm::translate(glm::mat4(1.0f), position_[row].value);

@@ -22,39 +22,36 @@
 #include "Texture.hpp"
 
 COMP_BGN(GBuffer)
-void GBuffer::Bind() {
+void GBuffer::Bind() const {
   glBindFramebuffer(GL_FRAMEBUFFER, handle);
   //  glViewport(0, 0, width, height);
 }
-void GBuffer::Unbind() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+void GBuffer::Unbind() const { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 COMP_END(GBuffer)
+
 MOD_BGN(DefferedRender)
 
 using namespace glm;
 using namespace Component;
 
-void OnRenderIter(flecs::iter& it, Mesh* meshes, DefferedRenderComp* render_) {
+// because of the gbuffer made as prefab to let each entities has the same one.
+// but in this case , if I added GBuffer in search group, it will give me multi
+// tables which each table has only one entity.
+void GeomPass(flecs::iter& it, Mesh* meshes, DefferedRenderComp* render_) {
   const auto texture = it.entity(0).get<TextureHandle>();
+  const auto buffer_ = it.entity(0).get<GBuffer>();
   auto render = render_[0];
 
   // geom pass
-  render.gbuffer.Bind();
+  buffer_[0].Bind();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glUseProgram(render.geomHandle);
   glBindTextures(0, 1, &texture->handle);
   meshes[0].DrawInstance(GL_TRIANGLES, it.count());
-  render.gbuffer.Unbind();
+  buffer_[0].Unbind();
 }
 
-void GBufferBlit(flecs::entity self, GBuffer& buffer) {
-
-
-/*  glBindFramebuffer(GL_READ_BUFFER, buffer.handle);
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-  glBlitFramebuffer(0, 0, buffer.width, buffer.height, 0, 0, buffer.width,
-                    buffer.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);*/
-}
+// void LightPass(flecs::entity self, GBuffer& gbuffer) {}
 
 void CreateTexture(Handle& handle, int width, int height,
                    int internalformat = GL_RGB16F, unsigned int format = GL_RGB,
@@ -111,18 +108,23 @@ void GBufferInitialize(GBuffer& g_buffer) {
                                       g_buffer.handle);
 }
 
-void GBufferUI(flecs::entity self, GBuffer& buffer) {
-  ImGui::Begin(self.name().c_str());
+void GBufferUI(flecs::iter& it, GBuffer* buffers) {
+  ImGui::Begin("GbufferUI");
   ImGui::Text("Position");
+  ImGui::SameLine();
   ImGui::Text("Normal");
+  ImGui::SameLine();
   ImGui::Text("Albedo");
-
-  ImGui::Image((void*)(intptr_t)buffer.positionHandle, ImVec2(200, 200));
-  ImGui::Image((void*)(intptr_t)buffer.normalHandle, ImVec2(200, 200));
-  ImGui::Image((void*)(intptr_t)buffer.albedoHandle, ImVec2(200, 200));
-  ImGui::Image((void*)(intptr_t)buffer.handle, ImVec2(200, 200));
-
+  ImGui::Image((void*)(intptr_t)buffers[0].positionHandle, ImVec2(200, 200));
+  ImGui::SameLine();
+  ImGui::Image((void*)(intptr_t)buffers[0].normalHandle, ImVec2(200, 200));
+  ImGui::SameLine();
+  ImGui::Image((void*)(intptr_t)buffers[0].albedoHandle, ImVec2(200, 200));
+  ImGui::SameLine();
+  ImGui::Image((void*)(intptr_t)buffers[0].handle, ImVec2(200, 200));
   ImGui::End();
+  for (auto row : it) {
+  }
 }
 
 DefferedRender::DefferedRender(flecs::world& ecs) {
@@ -151,49 +153,65 @@ void DefferedRender::InitializeComponent() {
 
 void DefferedRender::InitializeObserver() {
   PTR_ASSERT(pWorld_);
-
   pWorld_->observer<DefferedRenderComp>("DefferedRenderCompObserver")
       .event(flecs::OnAdd)
-      .each([&](flecs::entity self, DefferedRenderComp& render) {
-        defaultGbuffer.enable();
-        render.geomHandle = defaultGeomPass.get<Program>()->handle;
-        //        render.lightHandle = defaultLightPass.get<Program>()->handle;
-        render.gbuffer = *defaultGbuffer.get<GBuffer>();
+      .each([&](flecs::iter& it, size_t i, DefferedRenderComp& render) {
+        if (it.event() == flecs::OnAdd) {
+          render.geomHandle = defaultGeomPass.get<Program>()->handle;
+          if (prefab_.is_alive()) {
+            it.entity(i).is_a(prefab_);
+          }
+        }
       });
 }
 
 void DefferedRender::ImportSystem() {
   PTR_ASSERT(pWorld_);
 
+  /*   pWorld_->system<Mesh, DefferedRenderComp>("GeometryPass")
+        .kind(Phase::RenderStage)
+        .iter([&](flecs::iter& it, Mesh* meshes, DefferedRenderComp* render_) {
+          auto self = it.entity(0);
+
+          const auto render = self.get<DefferedRenderComp>();
+          const auto g_buffer = self.get<GBuffer>();
+
+          const auto texture = it.entity(0).get<TextureHandle>();
+
+          // geom pass
+          defaultGbuffer.get_ref<GBuffer>()->Bind();
+          glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+          glUseProgram(render->geomHandle);
+          glBindTextures(0, 1, &texture->handle);
+
+          meshes[0].DrawInstance(GL_TRIANGLES, it.count());
+          defaultGbuffer.get_ref<GBuffer>()->Unbind();
+        }); */
+
   pWorld_->system<Mesh, DefferedRenderComp>("GeometryPass")
       .kind(Phase::RenderStage)
-      .iter([&](flecs::iter& it, Mesh* meshes, DefferedRenderComp* render_) {
-        auto self = it.entity(0);
+      //      .run([](flecs::iter_t* it) {
+      //        while (ecs_iter_next(it)) it->callback(it);
+      //      })
+      .iter(GeomPass);
 
-        const auto render = self.get<DefferedRenderComp>();
-        const auto g_buffer = self.get<GBuffer>();
+  //  pWorld_->system<GBuffer>("LightPass")
+  //      .kind(Phase::RenderStage)
+  //      .each(LightPass);
 
-        const auto texture = it.entity(0).get<TextureHandle>();
-
-        // geom pass
-        defaultGbuffer.get_ref<GBuffer>()->Bind();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glUseProgram(render->geomHandle);
-        glBindTextures(0, 1, &texture->handle);
-
-        meshes[0].DrawInstance(GL_TRIANGLES, it.count());
-        defaultGbuffer.get_ref<GBuffer>()->Unbind();
-      });
-
-  //  // so far have not build the LightPass, of course this issue is I still
-  //  can't decide how to let the light module work with a better way
+  //  // so far have not build the LightPass, of course this issue is I
+  //  still can't decide how to let the light module work with a better way
   //  pWorld_->system<GBuffer>("BlitToScreen")
   //      .kind(Phase::BlitRender)
   //      .each(GBufferBlit);
 
+  //  pWorld_->system<GBuffer>("GBufferDebugUI")
+  //      .kind(Phase::ImGuiRender)
+  //      .each(GBufferUI);
+
   pWorld_->system<GBuffer>("GBufferDebugUI")
       .kind(Phase::ImGuiRender)
-      .each(GBufferUI);
+      .iter(GBufferUI);
 }
 
 void DefferedRender::InitializeDefault() {
@@ -201,16 +219,17 @@ void DefferedRender::InitializeDefault() {
 
   GBuffer buffer;
   GBufferInitialize(buffer);
-  defaultGbuffer =
-      pWorld_->entity("GloabalGBuffer")
-          .set<GBuffer>({buffer});  // here should be trigger the observer
-  defaultGbuffer.disable();
+
+  prefab_ = pWorld_->prefab("GBufferPrefab")
+                .set<GBuffer>(
+                    {buffer});  // now all the entity will use the same gbuffer
 
   {
-    //    defaultLightPass =
-    //        pWorld_->entity("DefferedRenderLightPass")
-    //            .set<ShaderFile>({"Shaders/DefferedRender/LightPass.vert",
-    //                              "Shaders/DefferedRender/LightPass.frag"});
+    //        defaultLightPass =
+    //            pWorld_->entity("DefferedRenderLightPass")
+    //                .set<ShaderFile>({"Shaders/DefferedRender/LightPass.vert",
+    //                                  "Shaders/DefferedRender/LightPass.frag"});
+
     defaultGeomPass =
         pWorld_->entity("DefferedRenderGeomPass")
             .set<ShaderFile>({"Shaders/DefferedRender/Geom.vert",

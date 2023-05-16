@@ -100,7 +100,6 @@ void OnBaseRenderer(entity e, BaseRenderComp& render) {
   glUseProgram(render.handle);
   glBindVertexArray(render.vao);
 
-
   glDrawArraysInstancedBaseInstance(render.drawType /*GL_TRIANGLES*/, 0, 3, 1,
                                     0);
 
