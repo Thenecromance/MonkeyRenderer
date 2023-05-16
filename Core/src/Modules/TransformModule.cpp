@@ -73,7 +73,6 @@ void TransformModule::LoadTransformComponent() {
                   {
                     self.is_a(prefab_);
                   }
-
           // clang-format on
       );
 }

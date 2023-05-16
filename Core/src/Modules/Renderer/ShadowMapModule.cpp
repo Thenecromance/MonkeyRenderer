@@ -8,6 +8,7 @@
 #include "OpenGLApp.hpp"
 #include "Phases.hpp"
 #include "RenderComp.hpp"
+#include "ShaderComp.hpp"
 
 COMP_BGN(RenderComp)
 void ShadowMap::Bind() {
@@ -83,7 +84,9 @@ void ShadowMapRender(flecs::entity self, Component::ShadowMap &shadowMap) {
   glClearNamedFramebufferfi(shadowMap.handle, GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
   // TODO:render mesh on the shadow map
-  {}
+  {
+    
+  }
 
   shadowMap.Unbind();
 }
@@ -93,6 +96,11 @@ ShadowMapModule::ShadowMapModule(world &ecs) {
   pWorld_ = &ecs;
 
   LoadShadowMapComponent();
+
+  pWorld_->entity("ShadowMap")
+      .add<Component::ShadowMap>()
+      .set<Component::ShaderFile>(
+          {"Shaders/ShadowMap.vert", "Shaders/ShadowMap.frag"});
 }
 
 void ShadowMapModule::LoadShadowMapComponent() {

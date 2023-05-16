@@ -70,13 +70,9 @@ std::string ShaderOperator::ReadSource(
   if (pFile->getExtension() == ".hpp") {
     // find the start location
     // then remove all text before the start location
-    int start_location = 0;
-    for (int i = 0; i < content.size(); ++i) {
-
-      if (content[i].find(_include_path_start) != std::string::npos) {
-        break;
-      }
-      content[i]="";
+    for (auto& line : content) {
+      if (line.find(_include_path_start) != std::string::npos) break;
+      line = "";
     }
   }
   // // insert the define for some functions which is used in the shader and
@@ -125,12 +121,11 @@ std::string ShaderOperator::ReadSource(
   }
 
   std::string finalSource;
-  for (auto& line : content)
-  {
+  for (auto& line : content) {
     finalSource += line + "\n";  // combine the content
   }
   return finalSource;
-//  return RemoveGroupedExplain(finalSource);
+  //  return RemoveGroupedExplain(finalSource);
 }
 std::string ShaderOperator::GeneratePreDefine() {
   if (pFile->getExtension() == ".vs" || pFile->getExtension() == ".vert") {
@@ -160,11 +155,7 @@ std::string ShaderOperator::InsertPreDefine() {
   return std::string("#define COMP_BGN(name)\n") + "#define COMP_END(name)\n" +
          "#define USING(name)\n" + "#define SIZE_OF(name)\n";
 }
-
-/*
- *
- // remove the unnecessary parts which is in the original snippet
-// therefore when component update , just directly update the component file at
-the same time #define COMP_BGN(name) #define COMP_END(name) #define USING(name)
-#define SIZE_OF(name)
- */
+ShaderOperator::~ShaderOperator() {
+  //  pFile->
+  if (pFile != nullptr) delete pFile;
+}

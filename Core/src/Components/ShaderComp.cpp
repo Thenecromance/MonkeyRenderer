@@ -102,5 +102,49 @@ std::string ShaderFile::ReadSource(const std::string& file_path) {
   ShaderOperator op(file_path);
   return op.ReadSource(includePaths);
 }
+bool ShaderFile::AllFileExist() {
+  if ((!vertexShader.empty() && !std::filesystem::exists(vertexShader))) {
+    Logger::get<ShaderFile>()->warn("vertex shader file:{} not exists",
+                                    vertexShader);
+    return false;
+  }
+  if ((!fragmentShader.empty() && !std::filesystem::exists(fragmentShader))) {
+    Logger::get<ShaderFile>()->warn("fragment shader file:{} not exists",
+                                    fragmentShader);
+    return false;
+  }
+  if ((!geometryShader.empty() && !std::filesystem::exists(geometryShader))) {
+    Logger::get<ShaderFile>()->warn("geometry shader file:{} not exists",
+                                    geometryShader);
+    return false;
+  }
+  if ((!tessellationControlShader.empty() &&
+       !std::filesystem::exists(tessellationControlShader))) {
+    Logger::get<ShaderFile>()->warn(
+        "tessellationControl shader file:{} not exists",
+        tessellationControlShader);
+    return false;
+  }
+  if ((!tessellationEvaluationShader.empty() &&
+       !std::filesystem::exists(tessellationEvaluationShader))) {
+    Logger::get<ShaderFile>()->warn(
+        "tessellationEvaluation shader file:{} not exists",
+        tessellationEvaluationShader);
+    return false;
+  }
+  if ((!computeShader.empty() && !std::filesystem::exists(computeShader))) {
+    Logger::get<ShaderFile>()->warn("compute shader file:{} not exists",
+                                    computeShader);
+    return false;
+  }
+  if (vertexShader.empty() && fragmentShader.empty() &&
+      geometryShader.empty() && tessellationControlShader.empty() &&
+      tessellationEvaluationShader.empty() && computeShader.empty()) {
+    Logger::get<ShaderFile>()->warn("shader file is empty");
+    return false;
+  }
+
+  return true;
+}
 
 COMP_END(Shader)

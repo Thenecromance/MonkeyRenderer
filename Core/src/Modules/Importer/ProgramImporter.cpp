@@ -32,7 +32,14 @@ bool CheckLinkStatus(Handle handle) {
 
 void ShaderFileOnSet(flecs::iter& it, size_t i, ShaderFile& files) {
   auto self = it.entity(i);
-  self.set<Shader>(files.Compile());
+  //
+  //  if(!files.vertexShader.empty()&& exists(files.vertexShader)){
+  //      )
+  if (files.AllFileExist())
+    self.set<Shader>(files.Compile());
+  else {
+    assert(false && "ShaderFileOnSet: file not exist");
+  }
 }
 void ShaderFileOnRemove(flecs::iter&, size_t, ShaderFile& files) {}
 
@@ -300,7 +307,7 @@ ShaderHotReloadModule::ShaderHotReloadModule(world& ecs) {
       //      .event(flecs::OnAdd) // should not use this
       .event(flecs::OnSet)
       .each([](flecs::entity self, ShaderFile& files) {
-        self.add<ShaderFileWatcher>();
+        if (files.AllFileExist()) self.add<ShaderFileWatcher>();
       });
 
   ecs.observer<ShaderFile>()

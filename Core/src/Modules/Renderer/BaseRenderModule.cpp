@@ -66,8 +66,6 @@ void FrameBufferInit(flecs::iter& it, size_t i, FrameBuffer& buffer) {
     buffer.width = width;
     buffer.height = height;
   }
-
-  Logger::get("Debug")->info("CreateFrameBuffer ");
   assert(status == GL_FRAMEBUFFER_COMPLETE);
 }
 

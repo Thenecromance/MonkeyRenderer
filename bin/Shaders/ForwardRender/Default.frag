@@ -8,6 +8,8 @@ layout (std140, binding = 0) uniform PerFrameData
     mat4 proj;
     vec4 cameraPos;
 };
+// so how to merge these part into the Light.hpp and also don't need to modified anything....
+// maybe SIZE_OF() can working on this?
 layout (std430, binding = 3) restrict readonly buffer PointLights {
     PointLight in_PointLights[];
 };

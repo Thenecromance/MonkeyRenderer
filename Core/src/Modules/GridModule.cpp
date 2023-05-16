@@ -50,7 +50,7 @@ GridModule::GridModule(world& ecs) {
   // clang-format off
   auto grid = ecs.entity("Grid")
                   .add<GridComponent>()
-                  .set<ShaderFile>({"Shaders/Grid/grid.vs", "Shaders/Grid/grid.fs"});
+                  .set<ShaderFile>({"Shaders/Grid/grid.vert", "Shaders/Grid/grid.frag"});
   // clang-format on
   glCreateVertexArrays(1, &grid.get_ref<GridComponent>()->vao);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

@@ -257,24 +257,36 @@ ImGuiRenderer::ImGuiRenderer(world &ecs) {
   ecs.observer<ImGuiBaseComp>().event(flecs::OnAdd).each(ImGuiBaseRenderInit);
 
   ecs.system<ImGuiBaseComp>("System::ImGuiNewFrame")
-      .kind(Phase::PreCameraUpdated)  // calling it in PreFrame just prevent the
+      .kind(Phase::PreCameraUpdated)  // calling it in PreFrame just prevent
                                       // some other system to call it in wrong
                                       // frames
       .iter(NewFrame);
 
+  
   ecs.system<InputController, ImGuiBaseComp>("System::ImGuiInputControl")
       .kind(Phase::PreCameraUpdated)
       .each(HandleInput);
 
   ecs.system<const ImGuiBaseComp, const Program>("System::ImGuiRenderer")
       .kind(Phase::PostFrame)
+      /*      .run([](flecs::iter_t *it) {
+              int width, height;
+              OpenGLApp::GetInstance()->GetWindowSize(width, height);
+              ImGuiIO &io = ImGui::GetIO();
+              io.DisplaySize = ImVec2((float)width, (float)height);
+              ImGui::NewFrame();
+
+              while (ecs_iter_next(it)) {
+                it->callback(it);
+              }
+            })*/
       .each(OnRender);
 
   ecs.entity("ImGuiRenderer")
       .add<ImGuiBaseComp>()
       .add<InputController>()
       .set<ShaderFile>(
-          {"Shaders/ImGuiShader/Imgui.vs", "Shaders/ImGuiShader/Imgui.fs"});
+          {"Shaders/ImGuiShader/Imgui.vert", "Shaders/ImGuiShader/Imgui.frag"});
 
   ImGuiKeyMapReMapping();
 }

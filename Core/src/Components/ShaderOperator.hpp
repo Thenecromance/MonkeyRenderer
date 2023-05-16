@@ -7,6 +7,7 @@ class File;
 class ShaderOperator {
  public:
   explicit ShaderOperator(std::string file_path);
+  ~ShaderOperator();
   std::string ReadSource(std::array<std::string, 10>& includePaths);
   // if use ShaderOperator, the include path will be relative to the file
   std::array<std::string, 10> GetIncludesArray();
@@ -44,8 +45,7 @@ class ShaderOperator {
   // this mark is a little bit different from the above
   static constexpr auto _grouped_explain_prefix = "/*";
   static constexpr auto _grouped_explain_suffix = "*/";
-  
-  
+
   static constexpr auto _include_path_start = "//@section-start";
-  std::array<std::string, 10> _includePaths{};  // it doesn't work why?
+  std::array<std::string, 10> _includePaths{};
 };

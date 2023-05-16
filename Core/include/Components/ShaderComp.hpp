@@ -28,6 +28,7 @@ struct ShaderFile {
 
   Shader Compile();
   Shader Compile(Shader& old);
+  bool AllFileExist();
 
  private:
   static bool CheckCompileStatus(Handle handle);
