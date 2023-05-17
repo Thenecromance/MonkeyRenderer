@@ -51,6 +51,9 @@ void GeomPass(flecs::iter& it, Mesh* meshes, DefferedRenderComp* render_) {
   buffer_[0].Unbind();
 }
 
+// void LightPass(flecs::entity self,  GBuffer& gbuffer ){
+// }
+
 // void LightPass(flecs::entity self, GBuffer& gbuffer) {}
 
 void CreateTexture(Handle& handle, int width, int height,

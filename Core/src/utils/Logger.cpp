@@ -24,7 +24,7 @@ std::shared_ptr<spdlog::logger> Logger::get(const std::string &name) {
     if (m_loggers.find(name) == m_loggers.end()) {
       auto logger = spdlog::logger(name, {console_sink, file_sink, error_sink});
       logger.set_level(spdlog::level::trace);
-      logger.set_pattern("[%Y-%m-%d %H:%M:%S.%e][%l] [%n]  %v");
+      logger.set_pattern("[%H:%M:%S.%e][%l] [%n]  %v");
       m_loggers[name] = std::make_shared<spdlog::logger>(logger);
     }
     return m_loggers[name];

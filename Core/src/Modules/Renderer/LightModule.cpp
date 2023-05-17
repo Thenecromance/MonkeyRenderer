@@ -5,14 +5,17 @@
 #include <imgui.h>
 
 #include "GlobalValue.hpp"
-#include "ImGuiComponentDraw.hpp"
 #include "LightComp.hpp"
+#include "Logger.hpp"
 #include "MeshComp.hpp"
 #include "Phases.hpp"
 #include "RenderComp.hpp"
 
 MOD_BGN(LightModule)
 using namespace Monkey::Component;
+
+#define STEP_FLOAT_MIN 1.0f
+#define STEP_FLOAT_MAX 10.f
 
 // need to find a way to upload light data to gpu
 
@@ -61,39 +64,60 @@ float cutoff;
       .member<float>("cutoff");
 }
 
-void LightModule::InitializeObserver() { PTR_ASSERT(pWorld_); }
+void LightModule::InitializeObserver() {
+  PTR_ASSERT(pWorld_);
+  pWorld_->observer<PointLight>("PointLight")
+      .event(flecs::OnAdd)
+      .event(flecs::OnSet)
+      .each([](flecs::iter& it, size_t i, PointLight& light) {
+        if (it.event() == flecs::OnAdd) it.entity(i).add<LightTransform>();
+      });
+}
 
 void LightModule::InitializeSystem() {
   PTR_ASSERT(pWorld_);
-  pWorld_->system<PointLight>("PointLightOnUpdate")
-      .kind(Phase::LightBinding)
-      .iter([&](flecs::iter& it, PointLight* light) {
-        // ignore the ClangTidy warning:Narrowing conversion from 'size_t' (aka
-        // 'unsigned long long') to signed type 'GLsizeiptr' (aka 'long long')
-        // is implementation-defined I don't think anyone can have a GPU that
-        // has more than 2^63 bytes of memory at least so far nobody can reach
-        // that
-        glNamedBufferSubData(PointLightBufferGroup, 0,
-                             sizePointLight * it.count(), light);
-        point_light_count_ = it.count();
-      });
 
-  pWorld_->system<DirectionalLight>("DirectionalLightOnUpdate")
-      .kind(Phase::LightBinding)
-      .iter([&](flecs::iter& it, DirectionalLight* light) {
-        glNamedBufferSubData(PointLightBufferGroup, 0,
-                             sizeDirectionalLight * it.count(), light);
-        direction_light_count_ = it.count();
-      });
+  // so far Light System only update each Lights' data from local
+  {
+    
+    /*
+     *
+     *
 
-  pWorld_->system<SpotLight>("SpotLightOnUpdate")
-      .kind(Phase::LightBinding)
-      .iter([&](flecs::iter& it, SpotLight* light) {
-        glNamedBufferSubData(PointLightBufferGroup, 0,
-                             sizeSpotLight * it.count(), light);
-        spot_light_count_ = it.count();
-      });
 
+
+    */
+    pWorld_->system<PointLight>("PointLightOnUpdate")
+        .kind(Phase::LightBinding)
+        .iter([&](flecs::iter& it, PointLight* light) {
+          
+          glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::ePointLight,PointLightBufferGroup);
+          glNamedBufferSubData(PointLightBufferGroup, 0,static_cast<GLsizeiptr>(sizePointLight * it.count()), &light[0]);
+          point_light_count_ = it.count();
+        });
+
+    pWorld_->system<DirectionalLight>("DirectionalLightOnUpdate")
+        .kind(Phase::LightBinding)
+        .iter([&](flecs::iter& it, DirectionalLight* light) {
+          glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::eDirectionLight,DirectionLightBufferGroup);
+          glNamedBufferSubData(
+              PointLightBufferGroup, 0,
+              static_cast<GLsizeiptr>(sizeDirectionalLight * it.count()),
+              light);
+          direction_light_count_ = it.count();
+        });
+
+    pWorld_->system<SpotLight>("SpotLightOnUpdate")
+        .kind(Phase::LightBinding)
+        .iter([&](flecs::iter& it, SpotLight* light) {
+          glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::eSpotLight, SpotLightBufferGroup);
+          glNamedBufferSubData(
+              PointLightBufferGroup, 0,
+              static_cast<GLsizeiptr>(sizeSpotLight * it.count()), light);
+          spot_light_count_ = it.count();
+        });
+  }
+  // just sync to perframe data , this info will be upload to gpu later
   pWorld_->system<PerFrameDataComp>("LightInfoUpdate")
       .kind(Phase::LightBinding)
       .each([&](flecs::entity self, PerFrameDataComp& data) {
@@ -102,15 +126,42 @@ void LightModule::InitializeSystem() {
         data.spot_light_count = spot_light_count_;
       });
 
+  //  pWorld_->system<PointLight>("PointLightUI")
+  //      .kind(Phase::ImGuiRender)
+  //      .run([](flecs::iter_t* it) {
+  //        ImGui::Begin("PointLight");
+  //        while (ecs_iter_next(it)) {
+  //          it->callback(it);
+  //        }
+  //        ImGui::End();
+  //      })
+  //      .each([](flecs::entity self, PointLight& light) {
+  //        if (ImGui::CollapsingHeader(self.name())) {
+  //          if (ImGui::TreeNode("Position")) {
+  //            ImGui::InputFloat("X", &light.position.x, STEP_FLOAT_MIN,
+  //                              STEP_FLOAT_MAX);
+  //            ImGui::InputFloat("Y", &light.position.y, STEP_FLOAT_MIN,
+  //                              STEP_FLOAT_MAX);
+  //            ImGui::InputFloat("Z", &light.position.z, STEP_FLOAT_MIN,
+  //                              STEP_FLOAT_MAX);
+  //            ImGui::TreePop();
+  //          }
+  //          if (ImGui::TreeNode("Color")) {
+  //            ImGui::InputFloat("R", &light.color.x, STEP_FLOAT_MIN,
+  //                              STEP_FLOAT_MAX);
+  //            ImGui::InputFloat("G", &light.color.y, STEP_FLOAT_MIN,
+  //                              STEP_FLOAT_MAX);
+  //            ImGui::InputFloat("B", &light.color.z, STEP_FLOAT_MIN,
+  //                              STEP_FLOAT_MAX);
+  //            ImGui::TreePop();
+  //          }
+  //          ImGui::InputFloat("Intensity", &light.intensity, STEP_FLOAT_MIN,
+  //                            STEP_FLOAT_MAX);
+  //        }
+  //      });
   // light ui
   /*  {
-      pWorld_->system<PointLight>("PointLightUI")
-          .kind(Phase::ImGuiRender)
-          .each([](flecs::entity self, PointLight& light) {
-            Begin("PointLight");
-            Draw(light);
-            End();
-          });
+
       pWorld_->system<DirectionalLight>("DirectionalLightUI")
           .kind(Phase::ImGuiRender)
           .each([](flecs::entity self, DirectionalLight& light) {
@@ -133,31 +184,22 @@ void LightModule::CreateLightBuffers() {
 
   // using storage buffer as to save the Light data, basically don't need GPU to
   // modified the data anymore
+  // clang-format off
   glCreateBuffers(1, &PointLightBufferGroup);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, PointLightBufferGroup);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,
-               static_cast<GLsizeiptr>(sizeof(PointLight) * poolSize), nullptr,
-               GL_DYNAMIC_DRAW);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
-                   Uniform::BindingLocation::ePointLight,
-                   PointLightBufferGroup);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,static_cast<GLsizeiptr>(sizeof(PointLight) * poolSize), nullptr,GL_DYNAMIC_DRAW);
 
   glCreateBuffers(1, &DirectionLightBufferGroup);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, DirectionLightBufferGroup);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,
-               static_cast<GLsizeiptr>(sizeof(DirectionalLight) * poolSize),
-               nullptr, GL_DYNAMIC_DRAW);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
-                   Uniform::BindingLocation::eDirectionLight,
-                   DirectionLightBufferGroup);
+  glBufferData(GL_SHADER_STORAGE_BUFFER,static_cast<GLsizeiptr>(sizeof(DirectionalLight) * poolSize),nullptr, GL_DYNAMIC_DRAW);
 
   glCreateBuffers(1, &SpotLightBufferGroup);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, SpotLightBufferGroup);
-  glBufferData(GL_SHADER_STORAGE_BUFFER,
-               static_cast<GLsizeiptr>(sizeof(SpotLight) * poolSize), nullptr,
-               GL_DYNAMIC_DRAW);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
-                   Uniform::BindingLocation::eSpotLight, SpotLightBufferGroup);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, static_cast<GLsizeiptr>(sizeof(SpotLight) * poolSize), nullptr,GL_DYNAMIC_DRAW);
+
+
+  // clang-format on
+  Logger::get<LightModule>()->debug("Create Light Buffers, PointLight:{0} , DirectionLight:{1} , SpotLight:{2}",PointLightBufferGroup, DirectionLightBufferGroup, SpotLightBufferGroup);
 }
 
 MOD_END(LightModule)

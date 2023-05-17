@@ -269,7 +269,7 @@ ImGuiRenderer::ImGuiRenderer(world &ecs) {
       .kind(Phase::PostFrame)
             .run([](flecs::iter_t *it) {
               ImGui::Begin("FrameCounter");
-              ImGui::Text("Frame: %f", it->delta_time);
+              ImGui::Text("Frame: %f ms", it->delta_time);
               ImGui::Text("FPS: %f", 1.0f / it->delta_time);
               ImGui::End();
               while (ecs_iter_next(it)) it->callback(it);

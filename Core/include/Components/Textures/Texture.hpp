@@ -19,6 +19,14 @@ struct TextureHandle {
   std::string name{};
 };
 
+struct PBRTexture{
+  std::string baseColor{};
+  std::string metallic_Roughness{};
+  std::string normal{};
+  std::string occulusion{};
+  std::string emissive{};
+};
+
 // PBR Warpped
 struct Material {
   Handle baseColor{};

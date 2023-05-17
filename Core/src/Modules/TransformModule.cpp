@@ -50,7 +50,12 @@ void TransformIter(flecs::iter& it, Transform* transform, Position* position_,
 TransformModule::TransformModule(world& ecs) {
   ecs.module<TransformModule>();
   pWorld_ = &ecs;
-
+  /*  int maxVertexUniform, maxFragmentUniform;
+    glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &maxVertexUniform);
+    glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_COMPONENTS, &maxFragmentUniform);
+    Logger::get<TransformModule>()->info(
+        "Max vertex uniform components: {}, max fragment uniform components:
+    {}", maxVertexUniform, maxFragmentUniform);*/
   LoadTransformGroup();
 
   LoadTransformComponent();
@@ -83,8 +88,10 @@ void TransformModule::LoadTransformComponent() {
 /// @param group the transform group
 void TransformGroupAllocate(TransformGroup& group) {
   if (group.groupedHandle == 0) {
+    // when use this way to upload data to the buffer , the limit is 65535
+    // bytes(64kb) (on my hard ware) in other word, the max size of the object
+    // is 1000
     glCreateBuffers(1, &group.groupedHandle);
-
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, group.groupedHandle);
     glBufferData(GL_SHADER_STORAGE_BUFFER,
                  static_cast<GLsizeiptr>(sizeof(glm::mat4) * group.size),

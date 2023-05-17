@@ -40,28 +40,39 @@ void CreateCamera(world &ecs) {
       .add<Component::InputController>();
 }
 void AddLights(world &ecs) {
-  ecs.entity("LightGroup::PointLight0").add<Component::PointLight>();
-  ecs.entity("LightGroup::PointLight1").add<Component::PointLight>();
-  ecs.entity("LightGroup::PointLight2").add<Component::PointLight>();
-  ecs.entity("LightGroup::PointLight3").add<Component::PointLight>();
-  ecs.entity("LightGroup::PointLight4").add<Component::PointLight>();
+  /*
+   * struct PointLight {
+vec3 position;  // instead of using PositionComp just for convinience to
+                // upload the data to GPU
+vec3 color;
+float intensity;
+};
+   */
+  // clang-format off
+    ecs.entity("LightGroup::PointLight0").set<Component::PointLight>({.position = {-8.0f, 2.5f,  10.0f}       ,.color =     {1.0f, 1.0f, 1.0f}    ,.intensity = 1.0f});
+    ecs.entity("LightGroup::PointLight1").set<Component::PointLight>({.position = {-70.0f, 2.5f,  145.0f}       ,.color =     {1.0f, 1.0f, 1.0f}    ,.intensity = 1.0f});
+    ecs.entity("LightGroup::PointLight2").set<Component::PointLight>({.position = {-8.0f, 2.5f,  70.0f}       ,.color =     {1.0f, 1.0f, 1.0f}    ,.intensity = 1.0f});
+    ecs.entity("LightGroup::PointLight3").set<Component::PointLight>({.position = {-8.0f, 2.5f,  40.0f}       ,.color =     {1.0f, 1.0f, 1.0f}    ,.intensity = 1.0f});
+    ecs.entity("LightGroup::PointLight4").set<Component::PointLight>({.position = {-8.0f, 2.5f,  50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}    ,.intensity = 1.0f});
+    /*
+    ecs.entity("LightGroup::DirectionalLight0")
+        .add<Component::DirectionalLight>();
+    ecs.entity("LightGroup::DirectionalLight1")
+        .add<Component::DirectionalLight>();
+    ecs.entity("LightGroup::DirectionalLight2")
+        .add<Component::DirectionalLight>();
+    ecs.entity("LightGroup::DirectionalLight3")
+        .add<Component::DirectionalLight>();
+    ecs.entity("LightGroup::DirectionalLight4")
+        .add<Component::DirectionalLight>();
 
-  ecs.entity("LightGroup::DirectionalLight0")
-      .add<Component::DirectionalLight>();
-  ecs.entity("LightGroup::DirectionalLight1")
-      .add<Component::DirectionalLight>();
-  ecs.entity("LightGroup::DirectionalLight2")
-      .add<Component::DirectionalLight>();
-  ecs.entity("LightGroup::DirectionalLight3")
-      .add<Component::DirectionalLight>();
-  ecs.entity("LightGroup::DirectionalLight4")
-      .add<Component::DirectionalLight>();
+    ecs.entity("LightGroup::SpotLight0").add<Component::SpotLight>();
+    ecs.entity("LightGroup::SpotLight1").add<Component::SpotLight>();
+    ecs.entity("LightGroup::SpotLight2").add<Component::SpotLight>();
+    ecs.entity("LightGroup::SpotLight3").add<Component::SpotLight>();
+    ecs.entity("LightGroup::SpotLight4").add<Component::SpotLight>();*/
 
-  ecs.entity("LightGroup::SpotLight0").add<Component::SpotLight>();
-  ecs.entity("LightGroup::SpotLight1").add<Component::SpotLight>();
-  ecs.entity("LightGroup::SpotLight2").add<Component::SpotLight>();
-  ecs.entity("LightGroup::SpotLight3").add<Component::SpotLight>();
-  ecs.entity("LightGroup::SpotLight4").add<Component::SpotLight>();
+  // clang-format on
 }
 void MeshTest(world &ecs) {
   auto duck =
@@ -70,13 +81,16 @@ void MeshTest(world &ecs) {
           .set<Texture>(
               {.path = R"(data\rubber_duck\textures\Duck_baseColor.png)"})
           .add<Transform>()
-        /*  .add<DefferedRenderComp>()
-          .disable<ForwardRenderComp>()*/
-              ;
+      /*  .add<DefferedRenderComp>()
+        .disable<ForwardRenderComp>()*/
+      ;
+  
+  // on my hard ware (RTX 2080, with 9700k) , the fps is 8~10 when direct render 10M duck.
+  
   // when using the core::EnableRest() , a large multi draw will spend a
   // lot of time on the CPU to upload the data to dashboard , caused the low fps
   for (int x = 0; x < 50; ++x) {
-    for (int y = 0; y < 100; ++y) {
+    for (int y = 0; y < 50; ++y) {
       std::string name = "MeshGroup::CopyMesh::RubberDuck_x" +
                          std::to_string(x) + "y" + std::to_string(y);
 
@@ -85,9 +99,9 @@ void MeshTest(world &ecs) {
           .set<TextureHandle>({*duck.get<TextureHandle>()})
           .set<Position>({{x * 2.0f, 0.0f, y * 2.0f}})
           .add<Transform>()
-/*          .remove<ForwardRenderComp>()
-          .add<DefferedRenderComp>()*/
-              ;
+          //.remove<ForwardRenderComp>()
+          //.add<DefferedRenderComp>()
+          ;
     }
   }
   duck.disable();

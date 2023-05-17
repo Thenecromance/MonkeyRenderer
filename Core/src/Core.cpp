@@ -5,7 +5,6 @@
 
 #include <GLFW/glfw3.h>
 
-#include "FileWatcherModule.hpp"
 #include "Input/InputHandler.hpp"
 #include "InputComponents.hpp"
 #include "Logger.hpp"
