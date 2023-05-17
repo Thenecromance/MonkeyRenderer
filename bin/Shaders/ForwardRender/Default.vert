@@ -8,6 +8,9 @@ layout (std140, binding = 0) uniform PerFrameData
     mat4 view;
     mat4 proj;
     vec4 cameraPos;
+    int point_light_count;
+    int direction_light_count;
+    int spot_light_count;
 };
 
 layout (std430, binding = 1) restrict readonly buffer Vertices

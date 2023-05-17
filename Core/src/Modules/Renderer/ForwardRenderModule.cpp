@@ -27,16 +27,6 @@ void ForwardRenderSystemIter(flecs::iter& it, ForwardRenderComp* render) {
   glBindTextures(0, 1, &texture->handle);
   mesh->DrawInstance(GL_TRIANGLES, it.count());
 }
-//
-// void ForwardRenderSystemOffScreen(flecs::entity self, ForwardRenderComp&
-// render,
-//                                  const Program& program,
-//                                  const FrameBuffer& fb) {
-//  //  glBindFramebuffer(GL_FRAMEBUFFER, fb.handle);
-//  //  ForwardRenderSystem(self, render, program);
-//  //  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//}
-
 ForwardRenderModule::ForwardRenderModule(world& ecs) {
   ecs.module<ForwardRenderModule>();
   pWorld_ = &ecs;
@@ -60,7 +50,7 @@ void ForwardRenderModule::CreateDefaultProgram() {
                             R"(Shaders\ForwardRender\Default.vert)",
                             R"(Shaders\ForwardRender\Default.frag)",
                         });  // this can be use as shader hot reload module
-
+  
   auto program = defaultProgram_.get<Program>();
   if (program->handle == 0) {
     Logger::get<ForwardRenderModule>()->critical(

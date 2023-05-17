@@ -267,13 +267,13 @@ ImGuiRenderer::ImGuiRenderer(world &ecs) {
 
   ecs.system<const ImGuiBaseComp, const Program>("System::ImGuiRenderer")
       .kind(Phase::PostFrame)
-      /*      .run([](flecs::iter_t *it) {
+            .run([](flecs::iter_t *it) {
               ImGui::Begin("FrameCounter");
               ImGui::Text("Frame: %f", it->delta_time);
               ImGui::Text("FPS: %f", 1.0f / it->delta_time);
               ImGui::End();
               while (ecs_iter_next(it)) it->callback(it);
-            })*/
+            })
       .each(OnRender);
 
   ecs.entity("ImGuiRenderer")

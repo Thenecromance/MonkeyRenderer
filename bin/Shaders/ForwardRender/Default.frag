@@ -7,6 +7,10 @@ layout (std140, binding = 0) uniform PerFrameData
     mat4 view;
     mat4 proj;
     vec4 cameraPos;
+
+    int point_light_count;
+    int direction_light_count;
+    int spot_light_count;
 };
 // so how to merge these part into the Light.hpp and also don't need to modified anything....
 // maybe SIZE_OF() can working on this?

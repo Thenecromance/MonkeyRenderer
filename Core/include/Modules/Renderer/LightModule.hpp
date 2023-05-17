@@ -22,6 +22,11 @@ class LightModule {
   unsigned int PointLightBufferGroup{};
   unsigned int DirectionLightBufferGroup{};
   unsigned int SpotLightBufferGroup{};
+
+ private:
+  int point_light_count_{};
+  int direction_light_count_{};
+  int spot_light_count_{};
 };
 
 MOD_END(LightModule)

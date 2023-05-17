@@ -7,6 +7,9 @@
 #define COMPILE_CHECK(v)
 #define PTR_CHECK(v)
 #define NONE_ZERO_CHECK(v)
+#define PTR_ASSERT(v)
+#define COMPILE_ASSERT(v)
+#define RENDER_RUNTIME_ASSERT(v)
 #else
 
 #define COMPILE_ASSERT(description)                                        \

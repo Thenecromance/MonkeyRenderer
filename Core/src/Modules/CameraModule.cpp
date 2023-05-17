@@ -125,7 +125,7 @@ void CameraUI(flecs::entity e, CameraComponent &cameraComponent) {
 }
 
 CameraModule::CameraModule(world &ecs) {
-  ecs.import <CameraModule>();
+  ecs.module<CameraModule>();
   Logger::get("Module")->trace("{} Loaded", __FUNCTION__);
 
   ecs.component<CameraComponent>()

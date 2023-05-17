@@ -70,12 +70,13 @@ void MeshTest(world &ecs) {
           .set<Texture>(
               {.path = R"(data\rubber_duck\textures\Duck_baseColor.png)"})
           .add<Transform>()
-          .add<DefferedRenderComp>()
-          .disable<ForwardRenderComp>();
+        /*  .add<DefferedRenderComp>()
+          .disable<ForwardRenderComp>()*/
+              ;
   // when using the core::EnableRest() , a large multi draw will spend a
   // lot of time on the CPU to upload the data to dashboard , caused the low fps
-  for (int x = 0; x < 5; ++x) {
-    for (int y = 0; y < 5; ++y) {
+  for (int x = 0; x < 50; ++x) {
+    for (int y = 0; y < 100; ++y) {
       std::string name = "MeshGroup::CopyMesh::RubberDuck_x" +
                          std::to_string(x) + "y" + std::to_string(y);
 
@@ -84,8 +85,8 @@ void MeshTest(world &ecs) {
           .set<TextureHandle>({*duck.get<TextureHandle>()})
           .set<Position>({{x * 2.0f, 0.0f, y * 2.0f}})
           .add<Transform>()
-          .remove<ForwardRenderComp>()
-          .add<DefferedRenderComp>()
+/*          .remove<ForwardRenderComp>()
+          .add<DefferedRenderComp>()*/
               ;
     }
   }

@@ -21,7 +21,6 @@ void Element(_Type& comp);
 
 #include "BaseType.inl"
 
-
 ELE_(glm::vec3) {
   ImGui::InputFloat("X", &comp.x, STEP_FLOAT_MIN, STEP_FLOAT_MAX);
   ImGui::InputFloat("Y", &comp.y, STEP_FLOAT_MIN, STEP_FLOAT_MAX);
@@ -58,6 +57,7 @@ ELE_(Position) {
     Element(comp.type);         \
     SUB_END();
 #include "CameraComponent.inl"
+#include "Light.inl"
 #include "Model.inl"
 #include "Position.inl"
 #include "Texture.inl"

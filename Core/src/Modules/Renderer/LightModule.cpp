@@ -4,11 +4,12 @@
 #include <glad/glad.h>
 #include <imgui.h>
 
-
 #include "GlobalValue.hpp"
+#include "ImGuiComponentDraw.hpp"
 #include "LightComp.hpp"
 #include "MeshComp.hpp"
 #include "Phases.hpp"
+#include "RenderComp.hpp"
 
 MOD_BGN(LightModule)
 using namespace Monkey::Component;
@@ -66,32 +67,65 @@ void LightModule::InitializeSystem() {
   PTR_ASSERT(pWorld_);
   pWorld_->system<PointLight>("PointLightOnUpdate")
       .kind(Phase::LightBinding)
-      .iter([&](flecs::iter& it) {
+      .iter([&](flecs::iter& it, PointLight* light) {
         // ignore the ClangTidy warning:Narrowing conversion from 'size_t' (aka
         // 'unsigned long long') to signed type 'GLsizeiptr' (aka 'long long')
         // is implementation-defined I don't think anyone can have a GPU that
         // has more than 2^63 bytes of memory at least so far nobody can reach
         // that
         glNamedBufferSubData(PointLightBufferGroup, 0,
-                             sizePointLight * it.count(),
-                             it.entity(0).get<PointLight>());
+                             sizePointLight * it.count(), light);
+        point_light_count_ = it.count();
       });
 
   pWorld_->system<DirectionalLight>("DirectionalLightOnUpdate")
       .kind(Phase::LightBinding)
-      .iter([&](flecs::iter& it) {
+      .iter([&](flecs::iter& it, DirectionalLight* light) {
         glNamedBufferSubData(PointLightBufferGroup, 0,
-                             sizeDirectionalLight * it.count(),
-                             it.entity(0).get<DirectionalLight>());
+                             sizeDirectionalLight * it.count(), light);
+        direction_light_count_ = it.count();
       });
 
   pWorld_->system<SpotLight>("SpotLightOnUpdate")
       .kind(Phase::LightBinding)
-      .iter([&](flecs::iter& it) {
+      .iter([&](flecs::iter& it, SpotLight* light) {
         glNamedBufferSubData(PointLightBufferGroup, 0,
-                             sizeSpotLight * it.count(),
-                             it.entity(0).get<SpotLight>());
+                             sizeSpotLight * it.count(), light);
+        spot_light_count_ = it.count();
       });
+
+  pWorld_->system<PerFrameDataComp>("LightInfoUpdate")
+      .kind(Phase::LightBinding)
+      .each([&](flecs::entity self, PerFrameDataComp& data) {
+        data.point_light_count = point_light_count_;
+        data.direction_light_count = direction_light_count_;
+        data.spot_light_count = spot_light_count_;
+      });
+
+  // light ui
+  /*  {
+      pWorld_->system<PointLight>("PointLightUI")
+          .kind(Phase::ImGuiRender)
+          .each([](flecs::entity self, PointLight& light) {
+            Begin("PointLight");
+            Draw(light);
+            End();
+          });
+      pWorld_->system<DirectionalLight>("DirectionalLightUI")
+          .kind(Phase::ImGuiRender)
+          .each([](flecs::entity self, DirectionalLight& light) {
+            Begin("PointLight");
+            Draw(light);
+            End();
+          });
+      pWorld_->system<SpotLight>("SpotLightUI")
+          .kind(Phase::ImGuiRender)
+          .each([](flecs::entity self, SpotLight& light) {
+            Begin("PointLight");
+            Draw(light);
+            End();
+          });
+    }*/
 }
 
 void LightModule::CreateLightBuffers() {

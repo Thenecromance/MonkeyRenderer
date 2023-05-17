@@ -10,7 +10,10 @@ struct PerFrameDataComp {
   glm::mat4 view;
   glm::mat4 projection;
   glm::vec4 cameraPos;
-
+  int point_light_count;
+  int direction_light_count;
+  int spot_light_count;
+  
   Handle buffer{};
 };
 SIZE_OF(PerFrameDataComp);
