@@ -18,6 +18,7 @@ Handle BufferCreator::CreateBuffer() {
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, handle);
 }
 
+
 void BufferCreator::GetMaxBufferSupported() {
   glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &max_buffer_supported_);
     Logger::get<BufferCreator>()->debug("max buffer supported: {} bytes", max_buffer_supported_);

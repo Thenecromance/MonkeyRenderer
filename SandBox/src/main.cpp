@@ -19,6 +19,7 @@
 #include "Modules/Renderer/ForwardRenderModule.hpp"
 #include "Modules/Renderer/LightModule.hpp"
 #include "Modules/Renderer/PostProcessModule.hpp"
+#include "Modules/Renderer/ShadowMapModule.hpp"
 #include "Modules/TransformModule.hpp"
 
 using namespace Monkey;
@@ -91,8 +92,8 @@ void MeshTest(world &ecs) {
 
   // when using the core::EnableRest() , a large multi draw will spend a
   // lot of time on the CPU to upload the data to dashboard , caused the low fps
-  for (int x = 0; x < 50; ++x) {
-    for (int y = 0; y < 50; ++y) {
+  for (int x = 0; x < 5; ++x) {
+    for (int y = 0; y < 5; ++y) {
       std::string name = "MeshGroup::CopyMesh::RubberDuck_x" +
                          std::to_string(x) + "y" + std::to_string(y);
 
@@ -101,15 +102,15 @@ void MeshTest(world &ecs) {
           .set<TextureHandle>({*duck.get<TextureHandle>()})
           .set<Position>({{x * 2.0f, 0.0f, y * 2.0f}})
           .add<Transform>()
-//          .remove<ForwardRenderComp>()
-//          .add<DefferedRenderComp>()
-              ;
+          //          .remove<ForwardRenderComp>()
+          //          .add<DefferedRenderComp>()
+          ;
     }
   }
   duck.disable();
 }
 int main() {
-  Core::GetInstance()->Initialize(144, 8);
+  Core::GetInstance()->Initialize(144, 1);
 
   Core::GetInstance()->EnableRest();
 
@@ -122,7 +123,8 @@ int main() {
       .Import<Module::MeshModule>()
       .Import<Module::TextureModule>()
       .Import<Module::LightModule>()  // Light module , still working on it
-      .Import<Module::BaseRender>()   // Render sections
+      .Import<Module::ShadowMapModule>()
+      .Import<Module::BaseRender>()                // Render sections
       .Import<Module::ForwardRenderModule>()       // Render sections
       .Import<Module::DefferedRender>()            // Render sections
       .Import<Module::GridModule>()                // grid

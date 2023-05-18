@@ -26,8 +26,6 @@ layout (std430, binding = 2) restrict readonly buffer Matrices
 
 layout (location = 0) out PerVertex vtx;
 
-
-
 vec3 getPosition(int i) {
     return vec3(in_Vertices[i].pos[0], in_Vertices[i].pos[1],
                 in_Vertices[i].pos[2]);

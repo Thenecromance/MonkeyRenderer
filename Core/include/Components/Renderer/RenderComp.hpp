@@ -75,12 +75,12 @@ struct ShadowMap {
   Handle colorHandle{};
   Handle depthHandle{};
 
-  int height{1024};
-  int width{1024};
+  int height{2560};
+  int width{1440};
 
  public:
   void Bind() const;
-  static void Unbind() ;
+  static void Unbind();
 };
 SIZE_OF(ShadowMap);
 
@@ -95,7 +95,7 @@ struct SSAO {
 
  public:
   void Bind() const;
-  static void Unbind() ;
+  static void Unbind();
 };
 SIZE_OF(SSAO);
 
@@ -122,3 +122,7 @@ struct DefferedRenderComp {
 SIZE_OF(DefferedRenderComp);
 
 COMP_END(RenderComp)
+
+namespace Monkey::Tag {
+struct ShadowMap {};
+}  // namespace Monkey::Tag

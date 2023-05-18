@@ -41,6 +41,17 @@ void Mesh::DrawInstance(unsigned int mode, unsigned int instanceCount) const {
                    Uniform::BindingLocation::eVertices, Vertices);
   glDrawElementsInstanced(mode, static_cast<GLsizei>(numIndices),
                           GL_UNSIGNED_INT, nullptr, instanceCount);
+ 
+}
+void Mesh::DrawBaseInstance(unsigned int mode, unsigned int instanceCount,
+                            unsigned int baseInstance) const {
+  glBindVertexArray(vao);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
+                   Uniform::BindingLocation::eVertices, Vertices);
+  glDrawElementsInstancedBaseInstance(mode, static_cast<GLsizei>(numIndices),
+                                      GL_UNSIGNED_INT, nullptr, instanceCount,
+                                      baseInstance);
+  
 }
 COMP_END(Mesh)
 MOD_BGN(MeshModule)

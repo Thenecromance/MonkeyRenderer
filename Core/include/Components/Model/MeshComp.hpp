@@ -25,6 +25,9 @@ struct Mesh {
   void DrawArrays(unsigned int mode, int first, int count) const;
   void DrawInstance(unsigned int mode = 0x0004,
                     unsigned int instanceCount = 1) const;
+  void DrawBaseInstance(unsigned int mode = 0x0004,
+                        unsigned int instanceCount = 1,
+                        unsigned int baseInstance = 0) const;
 };
 /// @brief mesh data in cache
 struct MeshData {

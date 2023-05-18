@@ -1,40 +1,27 @@
 #pragma once
 #include <flecs.h>
+
 #include "Job.hpp"
 #include "Marcos/Marcos.hpp"
 
-
-// due to redesign of the light system , this module is no longer available
-//MOD_BGN(ShadowMapModule)
-//
-//class ShadowMapModule {
-// public:
-//  ShadowMapModule(world& ecs);
-//
-//
-//
-//
-//  private:
-//  void LoadShadowMapComponent();
-//  void LoadShadowMapSystem();
-// private:
-//  //   bool isPreFabCreated_ = false;
-//  //   flecs::entity prefab_;
-//  flecs::world* pWorld_;
-//  flecs::entity shadowMapEntity_{};
-//};
-//
-//MOD_END(ShadowMapModule)
-
 MOD_BGN(ShadowMapping)
-class ShadowMapModule{
+class ShadowMapModule {
  public:
   explicit ShadowMapModule(world& ecs);
-  void LoadSystem();
-//  void LoadComponent();
-  void LoadObserver();
+
+ protected:
+  void HookOtherComponents();
+  void InitializeShadowMapComponent();
+  void InitializeShadowMapSystem();
+  void LoadShadowMapShader();
+
+
+  protected:
+  void InitializeLightTransformComponent();
  private:
-  flecs::world* pWorld_{} ;
-  
+  flecs::world* pWorld_{};
+  flecs::entity shadowMapEntity_{};
+  unsigned int PointLightGroup{};
 };
+
 MOD_END(ShadowMapping)

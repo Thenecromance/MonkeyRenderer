@@ -39,5 +39,5 @@ struct LightTransform {
   mat4 view;
   mat4 projection;
 };
-
+SIZE_OF(LightTransform)
 COMP_END(LightComp)

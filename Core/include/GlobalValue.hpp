@@ -11,6 +11,10 @@ enum BindingLocation {
   ePointLight,
   eDirectionLight,
   eSpotLight,
+
+  ePointLightMatrices,
+  eDirectionLightMatrices,
+  eSpotLightMatrices,
 };
 
 }
