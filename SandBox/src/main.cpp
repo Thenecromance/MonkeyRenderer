@@ -49,11 +49,17 @@ float intensity;
 };
    */
   // clang-format off
-    ecs.entity("LightGroup::PointLight0").set<Component::PointLight>({.intensity = 1.0f ,.position = {-8.0f, 2.5f,  10.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
-    ecs.entity("LightGroup::PointLight1").set<Component::PointLight>({.intensity = 1.0f ,.position = {-70.0f, 2.5f,  145.0f}     ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
-    ecs.entity("LightGroup::PointLight2").set<Component::PointLight>({.intensity = 1.0f ,.position = {-8.0f, 2.5f,  70.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
-    ecs.entity("LightGroup::PointLight3").set<Component::PointLight>({.intensity = 1.0f ,.position = {-8.0f, 2.5f,  40.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
-    ecs.entity("LightGroup::PointLight4").set<Component::PointLight>({.intensity = 1.0f ,.position = {-8.0f, 2.5f,  50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
+    ecs.entity("LightGroup::PointLight0").set<Component::PointLight>({.intensity = 1.0f ,.position = {-0.0f, 2.5f,   50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
+    ecs.entity("LightGroup::PointLight1").set<Component::PointLight>({.intensity = 1.0f ,.position = {-10.0f, 2.5f,  50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
+    ecs.entity("LightGroup::PointLight2").set<Component::PointLight>({.intensity = 1.0f ,.position = {-20.0f, 2.5f,  50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
+    ecs.entity("LightGroup::PointLight3").set<Component::PointLight>({.intensity = 1.0f ,.position = {-30.0f, 2.5f,  50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
+    ecs.entity("LightGroup::PointLight4").set<Component::PointLight>({.intensity = 1.0f ,.position = {-40.0f, 2.5f,  50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
+    ecs.entity("LightGroup::PointLight5").set<Component::PointLight>({.intensity = 1.0f ,.position = {-50.0f, 2.5f,  50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
+    ecs.entity("LightGroup::PointLight6").set<Component::PointLight>({.intensity = 1.0f ,.position = {-60.0f, 2.5f,  50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
+    ecs.entity("LightGroup::PointLight7").set<Component::PointLight>({.intensity = 1.0f ,.position = {-70.0f, 2.5f,  50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
+    ecs.entity("LightGroup::PointLight8").set<Component::PointLight>({.intensity = 1.0f ,.position = {-80.0f, 2.5f,  50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
+    ecs.entity("LightGroup::PointLight9").set<Component::PointLight>({.intensity = 1.0f ,.position = {-90.0f, 2.5f,  50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
+
     /*
     ecs.entity("LightGroup::DirectionalLight0").add<Component::DirectionalLight>();
     ecs.entity("LightGroup::DirectionalLight1").add<Component::DirectionalLight>();
@@ -103,7 +109,7 @@ void MeshTest(world &ecs) {
   duck.disable();
 }
 int main() {
-  Core::GetInstance()->Initialize(196, 8);
+  Core::GetInstance()->Initialize(144, 8);
 
   Core::GetInstance()->EnableRest();
 

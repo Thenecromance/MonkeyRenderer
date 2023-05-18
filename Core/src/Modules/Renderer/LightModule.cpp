@@ -3,6 +3,7 @@
 #include <flecs.h>
 #include <glad/glad.h>
 #include <imgui.h>
+#include <glm/ext.hpp>
 
 #include "GlobalValue.hpp"
 #include "LightComp.hpp"
@@ -14,10 +15,9 @@
 MOD_BGN(LightModule)
 using namespace Monkey::Component;
 
-#define STEP_FLOAT_MIN 1.0f
-#define STEP_FLOAT_MAX 10.f
 
-// need to find a way to upload light data to gpu
+
+
 
 LightModule::LightModule(flecs::world& ecs) {
   ecs.module<LightModule>();
@@ -68,9 +68,10 @@ void LightModule::InitializeObserver() {
   PTR_ASSERT(pWorld_);
   pWorld_->observer<PointLight>("PointLight")
       .event(flecs::OnAdd)
-      .event(flecs::OnSet)
-      .each([](flecs::iter& it, size_t i, PointLight& light) {
-        if (it.event() == flecs::OnAdd) it.entity(i).add<LightTransform>();
+      .each([&](flecs::iter& it, size_t i, PointLight& light) {
+        if (it.event() == flecs::OnAdd) {
+          point_light_count_++;
+        }
       });
 }
 
@@ -82,38 +83,27 @@ void LightModule::InitializeSystem() {
     pWorld_->system<PointLight>("PointLightOnUpdate")
         .kind(Phase::LightBinding)
         .iter([&](flecs::iter& it, PointLight* light) {
-          glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
-                           Uniform::BindingLocation::ePointLight,
-                           PointLightBufferGroup);
-          glNamedBufferSubData(
-              PointLightBufferGroup, 0,
-              static_cast<GLsizeiptr>(sizePointLight * it.count()), &light[0]);
-          point_light_count_ = it.count();
+          for(auto row:it ){
+            light[row].position.z += .1f;
+            if(light[row].position.z > 100.f){
+              light[row].position.z = -20.f;
+            }
+          }
+          glNamedBufferSubData(PointLightBufferGroup, 0,static_cast<GLsizeiptr>(sizePointLight * it.count()), light);
         });
 
     pWorld_->system<DirectionalLight>("DirectionalLightOnUpdate")
         .kind(Phase::LightBinding)
         .iter([&](flecs::iter& it, DirectionalLight* light) {
-          glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
-                           Uniform::BindingLocation::eDirectionLight,
-                           DirectionLightBufferGroup);
-          glNamedBufferSubData(
-              PointLightBufferGroup, 0,
-              static_cast<GLsizeiptr>(sizeDirectionalLight * it.count()),
-              light);
-          direction_light_count_ = it.count();
+          glNamedBufferSubData( PointLightBufferGroup, 0,static_cast<GLsizeiptr>(sizeDirectionalLight * it.count()),light);
+         
         });
 
     pWorld_->system<SpotLight>("SpotLightOnUpdate")
         .kind(Phase::LightBinding)
         .iter([&](flecs::iter& it, SpotLight* light) {
-          glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
-                           Uniform::BindingLocation::eSpotLight,
-                           SpotLightBufferGroup);
-          glNamedBufferSubData(
-              PointLightBufferGroup, 0,
-              static_cast<GLsizeiptr>(sizeSpotLight * it.count()), light);
-          spot_light_count_ = it.count();
+          glNamedBufferSubData( PointLightBufferGroup, 0,static_cast<GLsizeiptr>(sizeSpotLight * it.count()), light);
+         
         });
   }
   // just sync to perframe data , this info will be upload to gpu later
@@ -124,14 +114,7 @@ void LightModule::InitializeSystem() {
         data.direction_light_count = direction_light_count_;
         data.spot_light_count = spot_light_count_;
       });
-  // Light Matrices
-  {
-//    pWorld_->system<PointLight, LightTransform>("LightTransform")
-//        .kind(Phase::LogicUpdate)
-//        .each([](flecs::iter& it, size_t i , PointLight& light , LightTransform& transform) {
-//
-//        });
-  }
+
 }
 
 void LightModule::CreateLightBuffers() {
@@ -152,6 +135,10 @@ void LightModule::CreateLightBuffers() {
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, SpotLightBufferGroup);
   glBufferData(GL_SHADER_STORAGE_BUFFER, static_cast<GLsizeiptr>(sizeof(SpotLight) * poolSize), nullptr,GL_DYNAMIC_DRAW);
 
+
+glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::ePointLight,PointLightBufferGroup);
+glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::eDirectionLight,DirectionLightBufferGroup);
+glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::eSpotLight, SpotLightBufferGroup);
   // clang-format on
   Logger::get<LightModule>()->debug(
       "Create Light Buffers, PointLight:{0} , DirectionLight:{1} , "

@@ -12,7 +12,7 @@
 #include "OpenGLApp.hpp"
 ROOT_BGN()
 
-bool Core::Initialize(float dt, int num_thread) {
+bool Core::Initialize(float fps, int num_thread) {
   Logger::get("Core")->info("Core::Initialize");
 
   if (!OpenGLApp::GetInstance()->Initialize()) {
@@ -22,8 +22,8 @@ bool Core::Initialize(float dt, int num_thread) {
 
   { InputHandler::GetInstance()->Initialize(); }
 
-  ecs.set_threads(1);
-  ecs.set_target_fps(dt);
+  ecs.set_threads(num_thread);
+  ecs.set_target_fps(fps);
 
   return true;
 }

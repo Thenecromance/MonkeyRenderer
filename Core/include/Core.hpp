@@ -20,7 +20,7 @@ class PhaseBuilder;
 ROOT_BGN()
 class Core : public LazySingleTon<Core> {
  public:
-  bool Initialize(float dt, int num_thread = 1);
+  bool Initialize(float fps, int num_thread = 1);
 
   bool OnUpdate();
 

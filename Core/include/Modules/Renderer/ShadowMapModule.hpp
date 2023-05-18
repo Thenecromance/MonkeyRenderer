@@ -31,6 +31,8 @@ class ShadowMapModule{
  public:
   explicit ShadowMapModule(world& ecs);
   void LoadSystem();
+//  void LoadComponent();
+  void LoadObserver();
  private:
   flecs::world* pWorld_{} ;
   
