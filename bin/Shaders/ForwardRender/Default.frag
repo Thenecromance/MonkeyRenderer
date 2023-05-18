@@ -31,10 +31,6 @@ layout (location = 0) out vec4 out_FragColor;
 
 layout (binding = 0) uniform sampler2D texture0;
 
-
-
-
-
 vec3 CalculatePointLight(PointLight light, vec3 normal, vec3 fragPos,
                          vec3 viewDir);
 

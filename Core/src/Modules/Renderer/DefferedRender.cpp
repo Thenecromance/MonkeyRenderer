@@ -111,23 +111,39 @@ void GBufferInitialize(GBuffer& g_buffer) {
                                       g_buffer.handle);
 }
 
-void GBufferUI(flecs::iter& it, GBuffer* buffers) {
+ImVec2 size(200, 200);
+void GBufferUI(flecs::iter& it, DefferedRenderComp* _) {
+  auto buffers = it.entity(0).get<GBuffer>();
+
   ImGui::Begin("GbufferUI");
-  ImGui::Text("Position");
-  ImGui::SameLine();
-  ImGui::Text("Normal");
-  ImGui::SameLine();
-  ImGui::Text("Albedo");
-  ImGui::Image((void*)(intptr_t)buffers[0].positionHandle, ImVec2(200, 200));
-  ImGui::SameLine();
-  ImGui::Image((void*)(intptr_t)buffers[0].normalHandle, ImVec2(200, 200));
-  ImGui::SameLine();
-  ImGui::Image((void*)(intptr_t)buffers[0].albedoHandle, ImVec2(200, 200));
-  ImGui::SameLine();
-  ImGui::Image((void*)(intptr_t)buffers[0].handle, ImVec2(200, 200));
-  ImGui::End();
-  for (auto row : it) {
+  if (ImGui::CollapsingHeader("ImageSize")) {
+    ImGui::InputFloat("Width", &size.x, 1, 10);
+    //    ImGui::InputFloat("Height", &size.y, 1, 10);
+    size.y = size.x;
+    //    if (ImGui::TreeNode("Position")) {
+    //      ImGui::TreePop();
+    //    }
+    //    if (ImGui::TreeNode("Color")) {
+    //      ImGui::TreePop();
+    //    }
   }
+  if (ImGui::CollapsingHeader("Position")) {
+    ImGui::Image((void*)(intptr_t)buffers->positionHandle, size, ImVec2(0, 1),
+                 ImVec2(1, 0));
+  }
+  if (ImGui::CollapsingHeader("Normal")) {
+    ImGui::Image((void*)(intptr_t)buffers->normalHandle, size, ImVec2(0, 1),
+                 ImVec2(1, 0));
+  }
+  if (ImGui::CollapsingHeader("Albedo")) {
+    ImGui::Image((void*)(intptr_t)buffers->albedoHandle, size, ImVec2(0, 1),
+                 ImVec2(1, 0));
+  }
+  if (ImGui::CollapsingHeader("Finale")) {
+    ImGui::Image((void*)(intptr_t)buffers->handle, size, ImVec2(0, 1),
+                 ImVec2(1, 0));
+  }
+  ImGui::End();
 }
 
 DefferedRender::DefferedRender(flecs::world& ecs) {
@@ -212,7 +228,7 @@ void DefferedRender::ImportSystem() {
   //      .kind(Phase::ImGuiRender)
   //      .each(GBufferUI);
 
-  pWorld_->system<GBuffer>("GBufferDebugUI")
+  pWorld_->system<DefferedRenderComp>("GBufferDebugUI")
       .kind(Phase::ImGuiRender)
       .iter(GBufferUI);
 }

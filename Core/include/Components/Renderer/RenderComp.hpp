@@ -13,7 +13,7 @@ struct PerFrameDataComp {
   int point_light_count;
   int direction_light_count;
   int spot_light_count;
-  
+
   Handle buffer{};
 };
 SIZE_OF(PerFrameDataComp);
@@ -79,8 +79,8 @@ struct ShadowMap {
   int width{1024};
 
  public:
-  void Bind();
-  void Unbind();
+  void Bind() const;
+  static void Unbind() ;
 };
 SIZE_OF(ShadowMap);
 
@@ -94,8 +94,8 @@ struct SSAO {
   int width{};
 
  public:
-  void Bind();
-  void Unbind();
+  void Bind() const;
+  static void Unbind() ;
 };
 SIZE_OF(SSAO);
 

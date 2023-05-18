@@ -79,27 +79,24 @@ void LightModule::InitializeSystem() {
 
   // so far Light System only update each Lights' data from local
   {
-    
-    /*
-     *
-     *
-
-
-
-    */
     pWorld_->system<PointLight>("PointLightOnUpdate")
         .kind(Phase::LightBinding)
         .iter([&](flecs::iter& it, PointLight* light) {
-          
-          glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::ePointLight,PointLightBufferGroup);
-          glNamedBufferSubData(PointLightBufferGroup, 0,static_cast<GLsizeiptr>(sizePointLight * it.count()), &light[0]);
+          glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
+                           Uniform::BindingLocation::ePointLight,
+                           PointLightBufferGroup);
+          glNamedBufferSubData(
+              PointLightBufferGroup, 0,
+              static_cast<GLsizeiptr>(sizePointLight * it.count()), &light[0]);
           point_light_count_ = it.count();
         });
 
     pWorld_->system<DirectionalLight>("DirectionalLightOnUpdate")
         .kind(Phase::LightBinding)
         .iter([&](flecs::iter& it, DirectionalLight* light) {
-          glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::eDirectionLight,DirectionLightBufferGroup);
+          glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
+                           Uniform::BindingLocation::eDirectionLight,
+                           DirectionLightBufferGroup);
           glNamedBufferSubData(
               PointLightBufferGroup, 0,
               static_cast<GLsizeiptr>(sizeDirectionalLight * it.count()),
@@ -110,7 +107,9 @@ void LightModule::InitializeSystem() {
     pWorld_->system<SpotLight>("SpotLightOnUpdate")
         .kind(Phase::LightBinding)
         .iter([&](flecs::iter& it, SpotLight* light) {
-          glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::eSpotLight, SpotLightBufferGroup);
+          glBindBufferBase(GL_SHADER_STORAGE_BUFFER,
+                           Uniform::BindingLocation::eSpotLight,
+                           SpotLightBufferGroup);
           glNamedBufferSubData(
               PointLightBufferGroup, 0,
               static_cast<GLsizeiptr>(sizeSpotLight * it.count()), light);
@@ -125,58 +124,14 @@ void LightModule::InitializeSystem() {
         data.direction_light_count = direction_light_count_;
         data.spot_light_count = spot_light_count_;
       });
-
-  //  pWorld_->system<PointLight>("PointLightUI")
-  //      .kind(Phase::ImGuiRender)
-  //      .run([](flecs::iter_t* it) {
-  //        ImGui::Begin("PointLight");
-  //        while (ecs_iter_next(it)) {
-  //          it->callback(it);
-  //        }
-  //        ImGui::End();
-  //      })
-  //      .each([](flecs::entity self, PointLight& light) {
-  //        if (ImGui::CollapsingHeader(self.name())) {
-  //          if (ImGui::TreeNode("Position")) {
-  //            ImGui::InputFloat("X", &light.position.x, STEP_FLOAT_MIN,
-  //                              STEP_FLOAT_MAX);
-  //            ImGui::InputFloat("Y", &light.position.y, STEP_FLOAT_MIN,
-  //                              STEP_FLOAT_MAX);
-  //            ImGui::InputFloat("Z", &light.position.z, STEP_FLOAT_MIN,
-  //                              STEP_FLOAT_MAX);
-  //            ImGui::TreePop();
-  //          }
-  //          if (ImGui::TreeNode("Color")) {
-  //            ImGui::InputFloat("R", &light.color.x, STEP_FLOAT_MIN,
-  //                              STEP_FLOAT_MAX);
-  //            ImGui::InputFloat("G", &light.color.y, STEP_FLOAT_MIN,
-  //                              STEP_FLOAT_MAX);
-  //            ImGui::InputFloat("B", &light.color.z, STEP_FLOAT_MIN,
-  //                              STEP_FLOAT_MAX);
-  //            ImGui::TreePop();
-  //          }
-  //          ImGui::InputFloat("Intensity", &light.intensity, STEP_FLOAT_MIN,
-  //                            STEP_FLOAT_MAX);
-  //        }
-  //      });
-  // light ui
-  /*  {
-
-      pWorld_->system<DirectionalLight>("DirectionalLightUI")
-          .kind(Phase::ImGuiRender)
-          .each([](flecs::entity self, DirectionalLight& light) {
-            Begin("PointLight");
-            Draw(light);
-            End();
-          });
-      pWorld_->system<SpotLight>("SpotLightUI")
-          .kind(Phase::ImGuiRender)
-          .each([](flecs::entity self, SpotLight& light) {
-            Begin("PointLight");
-            Draw(light);
-            End();
-          });
-    }*/
+  // Light Matrices
+  {
+//    pWorld_->system<PointLight, LightTransform>("LightTransform")
+//        .kind(Phase::LogicUpdate)
+//        .each([](flecs::iter& it, size_t i , PointLight& light , LightTransform& transform) {
+//
+//        });
+  }
 }
 
 void LightModule::CreateLightBuffers() {
@@ -197,9 +152,11 @@ void LightModule::CreateLightBuffers() {
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, SpotLightBufferGroup);
   glBufferData(GL_SHADER_STORAGE_BUFFER, static_cast<GLsizeiptr>(sizeof(SpotLight) * poolSize), nullptr,GL_DYNAMIC_DRAW);
 
-
   // clang-format on
-  Logger::get<LightModule>()->debug("Create Light Buffers, PointLight:{0} , DirectionLight:{1} , SpotLight:{2}",PointLightBufferGroup, DirectionLightBufferGroup, SpotLightBufferGroup);
+  Logger::get<LightModule>()->debug(
+      "Create Light Buffers, PointLight:{0} , DirectionLight:{1} , "
+      "SpotLight:{2}",
+      PointLightBufferGroup, DirectionLightBufferGroup, SpotLightBufferGroup);
 }
 
 MOD_END(LightModule)
