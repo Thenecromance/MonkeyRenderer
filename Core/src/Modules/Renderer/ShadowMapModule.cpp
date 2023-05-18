@@ -186,14 +186,11 @@ void ShadowMapModule::LoadShadowMapShader() {
       .add<Component::ShadowMap>();
 }
 
-void UpdatePointLight(Component::PointLight& light,
-                      Component::LightTransform& transform) {
-  
-                        const glm::mat4 lightProj = glm::perspective(glm::radians(60.0f), 1.0f, 1.0f, 20.f);
-                        const glm::mat4 lightView = glm::lookAt(glm::vec3(light.position), glm::vec3(0.0f,0.0f,-1.0f), glm::vec3(0, 1, 0));
-  
-                        transform.projection = lightProj;
-                        transform.view = lightView;
+void UpdatePointLight(Component::PointLight& light,Component::LightTransform& transform) {
+		const glm::mat4 lightProj = glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, 20.f);
+		const glm::mat4 lightView = glm::lookAt(glm::vec3(light.position), glm::vec3(0.0f,0.0f,0.0f), glm::vec3(0, 1, 0));
+                transform.projection = lightProj;
+                transform.view = lightView;
                       }
 
 void ShadowMapModule::InitializeLightTransformComponent() {
@@ -201,10 +198,11 @@ void ShadowMapModule::InitializeLightTransformComponent() {
 
   {
     glCreateBuffers(1, &PointLightGroup);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, PointLightGroup);
-    glBufferData(GL_SHADER_STORAGE_BUFFER,
-                 static_cast<GLsizeiptr>(Component::sizeLightTransform * 100), // temp to use 100 lights, need to change later
-                 nullptr, GL_DYNAMIC_DRAW);
+    glNamedBufferStorage(PointLightGroup, static_cast<GLsizeiptr>(Component::sizeLightTransform*100), // temp to use 100 lights, need to change later
+                         nullptr, GL_DYNAMIC_STORAGE_BIT);
+//    glBindBuffer(GL_SHADER_STORAGE_BUFFER, PointLightGroup);
+//    glBufferData(GL_SHADER_STORAGE_BUFFER,static_cast<GLsizeiptr>(Component::sizeLightTransform * 100), // temp to use 100 lights, need to change later
+//                 nullptr, GL_DYNAMIC_DRAW);
     glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::ePointLightMatrices, PointLightGroup);
     Logger::get<ShadowMapModule>()->info("PointLightGroup {}", PointLightGroup);
   }
@@ -216,11 +214,13 @@ void ShadowMapModule::InitializeLightTransformComponent() {
       .kind(Phase::LogicUpdate)//another wrong place
       .iter([&](flecs::iter& it, Component::PointLight* lights,
                 Component::LightTransform* transforms) {
-        for (auto idx : it) {
-          UpdatePointLight(lights[idx], transforms[idx]);
+        for (auto&idx : it) {
+          UpdatePointLight(lights[0], transforms[0]);
         }
-
-        glNamedBufferSubData(PointLightGroup, Uniform::BindingLocation::ePointLightMatrices,Component::sizeLightTransform * it.count(), transforms);
+        //glNamedBufferSubData's 2nd params is offset , it's not the index of the buffer , I'm a monkey
+        //glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size, const void *data);
+        //glNamedBufferSubData(PointLightGroup, Uniform::BindingLocation::ePointLightMatrices, Component::sizeLightTransform * it.count(), transforms); // but I used it as index, I'm a real monkey
+        glNamedBufferSubData(PointLightGroup, 0, Component::sizeLightTransform * it.count(), transforms); // I'm a monkey again
       });
 }
 

@@ -11,12 +11,10 @@
 #include <glm/ext.hpp>
 #include <glm/glm.hpp>
 
-#include "Base/Position.hpp"
 #include "Logger.hpp"
 #include "MeshComp.hpp"
 #include "OpenGLApp.hpp"
 #include "Phases.hpp"
-#include "Position.hpp"
 #include "Renderer/renderComp.hpp"
 #include "ShaderComp.hpp"
 #include "Texture.hpp"
@@ -113,6 +111,7 @@ void GBufferInitialize(GBuffer& g_buffer) {
 
 ImVec2 size(200, 200);
 void GBufferUI(flecs::iter& it, DefferedRenderComp* _) {
+  
   auto buffers = it.entity(0).get<GBuffer>();
 
   ImGui::Begin("GbufferUI");
