@@ -12,8 +12,8 @@ struct Position {
 // using Position = glm::vec3;
 SIZE_OF(Position)
 struct Rotation {
-  glm::vec3 value{0.0f, 0.0f, 1.0f};
-  float angle{180.0f};
+  glm::vec3 value{1.0f, 0.0f, 0.0f};
+  float angle{0.0f};
 };
 SIZE_OF(Rotation)
 

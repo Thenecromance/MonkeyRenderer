@@ -42,15 +42,17 @@ void CreateCamera(world &ecs) {
 }
 void AddLights(world &ecs) {
   /*
-   * struct PointLight {
-vec3 position;  // instead of using PositionComp just for convinience to
-                // upload the data to GPU
-vec3 color;
-float intensity;
+   *
+   struct PointLight {
+__declspec(align(16)) float intensity{};  // 4 bytes after use align(16) this part will goes to 16bytes ,although this might be a little waste local memory, but it will be faster when we use it in shader
+__declspec(align(16)) vec3 position;      // 12 bytes
+__declspec(align(16)) vec3 color;         // 12 bytes
+vec4 Angle;
+
 };
    */
   // clang-format off
-    ecs.entity("LightGroup::PointLight0").set<Component::PointLight>({.intensity = 1.0f ,.position = {-0.0f, 2.5f,   50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
+    ecs.entity("LightGroup::PointLight0").set<Component::PointLight>({.intensity = 1.0f ,.position = {-0.0f, 2.5f,   0.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ; //temp set to positions.z to 0 for debug
     ecs.entity("LightGroup::PointLight1").set<Component::PointLight>({.intensity = 1.0f ,.position = {-10.0f, 2.5f,  50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
     ecs.entity("LightGroup::PointLight2").set<Component::PointLight>({.intensity = 1.0f ,.position = {-20.0f, 2.5f,  50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
     ecs.entity("LightGroup::PointLight3").set<Component::PointLight>({.intensity = 1.0f ,.position = {-30.0f, 2.5f,  50.0f}       ,.color =     {1.0f, 1.0f, 1.0f}     })    ;
@@ -87,7 +89,20 @@ void MeshTest(world &ecs) {
       /*  .add<DefferedRenderComp>()
         .disable<ForwardRenderComp>()*/
       ;
-  
+//  ecs.entity("Container")
+//          .set<MeshFile>({
+//              .path = R"(data/Container/Container.obj)"
+//          })
+//          .set<Texture>({
+//              .path = R"(data/test.jpg)"
+//          })
+//          .add<Transform>()
+//              .set<Scale>({
+//              .value = {
+//                  0.01f,0.01f,0.01f
+//              }
+//          });
+  //TODO: I need to create a place to place these basic shapes
   ecs.entity("Plane")
       .set<MeshData>({
           .Indices = {0, 1, 2, 2, 3, 0 },
@@ -102,14 +117,10 @@ void MeshTest(world &ecs) {
       .set<Texture>({"data//wall.jpg"})
       .add<Transform>()
           .set<Position>({
-              .value= {
-                  1.0f,1.0f,0.0f
-              }
+              .value= {0.0f,0.0f,0.01f}
           })
           .set<Rotation>({
-              .value = {
-                  0.0f,1.0f,1.0f
-              }
+              .value = {1.0f,0.0f,0.0f}
           })
           .set<Scale>({
               .value ={10.0f,10.0f,10.0f}
@@ -129,7 +140,8 @@ void MeshTest(world &ecs) {
       ecs.entity(name.c_str())
           .set<Mesh>({*duck.get<Mesh>()})
           .set<TextureHandle>({*duck.get<TextureHandle>()})
-          .set<Position>({{x * 2.0f, 0.0f, y * 2.0f}})
+          .set<Position>({{
+              x * 2.0f,  y * 2.0f,0.0f}})
           .add<Transform>()
           //          .remove<ForwardRenderComp>()
           //          .add<DefferedRenderComp>()
@@ -156,7 +168,7 @@ int main() {
       .Import<Module::BaseRender>()                // Render sections
       .Import<Module::ForwardRenderModule>()       // Render sections
       .Import<Module::DefferedRender>()            // Render sections
-//      .Import<Module::GridModule>()                // grid
+      .Import<Module::GridModule>()                // grid
       .Import<Module::ImGuiRenderer>()             // ImGuiRenderer
       .Import<Module::AntiAliasingConfigModule>()  // AA control
       ;

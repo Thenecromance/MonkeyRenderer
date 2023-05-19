@@ -18,12 +18,12 @@ layout ( binding = 3) restrict readonly buffer PointLights {
     PointLight in_PointLights[];
 };
 
-layout ( binding = 4) restrict readonly buffer DirectionalLights {
-    DirectionalLight in_DirectionalLights[];
-};
-layout (binding = 5) restrict readonly buffer SpotLights {
-    SpotLight in_SpotLights[];
-};
+// layout ( binding = 4) restrict readonly buffer DirectionalLights {
+//     DirectionalLight in_DirectionalLights[];
+// };
+// layout (binding = 5) restrict readonly buffer SpotLights {
+//     SpotLight in_SpotLights[];
+// };
 
 layout (location =0 ) in PerVertex vtx;
 

@@ -53,6 +53,12 @@ struct ShadowMap {
 };
 */
 entity shadow_;
+
+// TODO: shadow map need to binding to light, but so far here is just a basic
+// demo working in progress,
+//  so I just hard code the Component::ShadowMap to a single entity which is
+//  shadowMapEntity_. when combine pass just temp to test the shadow map mainly
+//  logic is working as expected.
 ShadowMapModule::ShadowMapModule(world& ecs) {
   ecs.module<ShadowMapModule>();
   pWorld_ = &ecs;
@@ -78,16 +84,13 @@ void ShadowMapModule::HookOtherComponents() {
         // to prevent tag will be added twice when other place calling the
         // entity.set<Mesh>();
         if (it.event() == flecs::OnAdd) {
-          it.entity(i).add<Tag::ShadowMap>();
-          auto self = it.entity(i);
-
-          self.set<Component::Program>({shadowRenderPass_.get<Component::Program>()->handle});
-          /* if(self.has<Component::Program>())
-           Logger::get("Debug")->info("ChangeShaderProgram
-           {}",self.get<Component::Program>()->handle); else{
-           Logger::get("Debug")->info("Shit");
-           self.add<Component::Program>();
-           }*/
+          it.entity(i)
+              .add<Tag::ShadowMap>()  // add tag to entities, to let the system
+                                      // know the mesh need to be rendered by
+                                      // shadowmap
+              .set<Component::Program>(
+                  {shadowRenderPass_.get<Component::Program>()->handle})
+              ;
         }
       });
 
@@ -97,30 +100,16 @@ void ShadowMapModule::HookOtherComponents() {
         if (it.event() == flecs::OnAdd)
           it.entity(i).add<Component::LightTransform>();
       });
-
-  //  pWorld_->observer<Tag::ShadowMap>("ChangeShaderProgram")
-  //      .event(flecs::OnAdd)
-  //      .each([](flecs::iter& it , size_t i ,  Tag::ShadowMap& s ) {
-  //       if(it.event() == flecs::OnAdd)
-  //       {
-  //       auto self = it.entity(i);
-  //       Logger::get("ShadowMapModule")->info("ChangeShaderProgram
-  //       {}",self.get<Component::Program>()->handle);
-  //       }
-  //      });
 }
+void ShadowMapInitializer(flecs::entity target,
+                          Component::ShadowMap& shadowMap) {
+  glCreateFramebuffers(1, &shadowMap.handle);
 
-void ShadowMapModule::InitializeShadowMapComponent() {
-  PTR_ASSERT(pWorld_);
-  // Initialize shadow map component
-  pWorld_->observer<Component::ShadowMap>("ShadowMapInitializer")
-      .event(flecs::OnAdd)
-      .each([](flecs::entity target, Component::ShadowMap& shadowMap) {
-        glCreateFramebuffers(1, &shadowMap.handle);
-        OpenGLApp::GetInstance()->GetWindowSize(shadowMap.width,
-                                                shadowMap.height);
+  // TODO:allocate 2 screen size 's texture buffers ,a little waste
+  // resource here, but so far still could afford it.
+  OpenGLApp::GetInstance()->GetWindowSize(shadowMap.width, shadowMap.height);
 
-        // clang-format off
+  // clang-format off
         // create color buffer
         {
           glCreateTextures(GL_TEXTURE_2D, 1, &shadowMap.colorHandle);
@@ -148,16 +137,22 @@ void ShadowMapModule::InitializeShadowMapComponent() {
           glTextureParameteri(shadowMap.depthHandle, GL_TEXTURE_WRAP_T,GL_CLAMP_TO_BORDER);
           glNamedFramebufferTexture(shadowMap.handle, GL_DEPTH_ATTACHMENT,shadowMap.depthHandle, 0);
         }
-        // clang-format on
-        const GLenum status =
-            glCheckNamedFramebufferStatus(shadowMap.handle, GL_FRAMEBUFFER);
-        if (status != GL_FRAMEBUFFER_COMPLETE) {
-          Logger::get<ShadowMapModule>()->error(
-              "ShadowMap Framebuffer is not complete {}",
-              status);  // 36054 GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT
-          assert(false && "ShadowMap Framebuffer is not complete");
-        }
-      });
+  // clang-format on
+  const GLenum status =
+      glCheckNamedFramebufferStatus(shadowMap.handle, GL_FRAMEBUFFER);
+  if (status != GL_FRAMEBUFFER_COMPLETE) {
+    Logger::get<ShadowMapModule>()->error(
+        "ShadowMap Framebuffer is not complete {}",
+        status);  // 36054 GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT
+    assert(false && "ShadowMap Framebuffer is not complete");
+  }
+}
+void ShadowMapModule::InitializeShadowMapComponent() {
+  PTR_ASSERT(pWorld_);
+  // Initialize shadow map component
+  pWorld_->observer<Component::ShadowMap>("ShadowMapInitializer")
+      .event(flecs::OnAdd)
+      .each(ShadowMapInitializer);
 }
 
 void ShadowMapModule::InitializeShadowMapSystem() {
@@ -179,16 +174,15 @@ void ShadowMapModule::InitializeShadowMapSystem() {
         shadowMap->Bind();
         glUseProgram(shadow_.get<Component::Program>()->handle);
         glClearNamedFramebufferfv(shadowMap->handle, GL_COLOR, 0,glm::value_ptr(glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)));
-        // glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint
-        // drawbuffer, GLfloat depth, GLint stencil);
+        // glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLintdrawbuffer, GLfloat depth, GLint stencil);
         glClearNamedFramebufferfi(shadowMap->handle, GL_DEPTH_STENCIL, 0, 1.0f, 0);
         
-        while (ecs_iter_next(it)) {
+        while (ecs_iter_next(it))
           it->callback(it);
-        }
         
         shadowMap->Unbind();
         glDisable(GL_DEPTH_TEST);
+        glBindTextureUnit(1, shadowMap->depthHandle); // too ugly
         // clang-format on
       })
       .iter([&](flecs::iter& it, Component::Mesh* meshes,
@@ -232,21 +226,21 @@ void ShadowMapModule::LoadShadowMapShader() {
       .set<Component::ShaderFile>({"Shaders//ShadowMapping//shadow.vert",
                                    "Shaders//ShadowMapping//shadow.frag"})
       .add<Component::ShadowMap>();
-
+  // when mesh has Tag::ShadowMap, mesh will be rendered by ShadowMap shader
   shadowRenderPass_.set<Component::ShaderFile>({
-      "Shaders//ShadowMapping//shadow.vert",
-      "Shaders//ShadowMapping//shadow.frag",
+      "Shaders//ShadowMapping//Scene.vert",
+      "Shaders//ShadowMapping//Scene.frag",
   });
 }
 
-void UpdatePointLight(Component::PointLight& light,
-                      Component::LightTransform& transform) {
+void CalculateMatrices(Component::PointLight& light,
+                       Component::LightTransform& transform) {
   auto lookpos = light.position;
   lookpos.z += 1.0f;
   const glm::mat4 lightProj =
-      glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, 20.f);
+      glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, 2000.f);
   const glm::mat4 lightView =
-      glm::lookAt(glm::vec3(light.position), lookpos, glm::vec3(0, 1, 0));
+      glm::lookAt(glm::vec3(light.position), glm::vec3(0) , glm::vec3(0, 1, 0));
   transform.projection = lightProj;
   transform.view = lightView;
 }
@@ -281,7 +275,7 @@ void ShadowMapModule::InitializeLightTransformComponent() {
       .iter([&](flecs::iter& it, Component::PointLight* lights,
                 Component::LightTransform* transforms) {
         for (auto& idx : it) {
-          UpdatePointLight(lights[0], transforms[0]);
+          CalculateMatrices(lights[idx], transforms[idx]);
         }
         // glNamedBufferSubData's 2nd params is offset , it's not the index of
         // the buffer , I'm a monkey glNamedBufferSubData(GLuint buffer,

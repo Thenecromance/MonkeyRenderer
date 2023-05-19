@@ -17,7 +17,7 @@ class LightModule {
 
  private:
   flecs::world* pWorld_{};
-  int poolSize{100};
+  int poolSize{10};
 
   unsigned int PointLightBufferGroup{};
   unsigned int DirectionLightBufferGroup{};

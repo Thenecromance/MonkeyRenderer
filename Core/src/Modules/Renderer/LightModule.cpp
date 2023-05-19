@@ -72,6 +72,7 @@ void LightModule::InitializeObserver() {
       });
 }
 
+float g_LightAngle = 90.0f;
 void LightModule::InitializeSystem() {
   PTR_ASSERT(pWorld_);
 
@@ -80,6 +81,13 @@ void LightModule::InitializeSystem() {
     pWorld_->system<PointLight>("PointLightOnUpdate")
         .kind(Phase::LightBinding)
         .iter([&](flecs::iter& it, PointLight* light) {
+          // calculate the light angle params
+          for (auto& idx : it) {
+            light[idx].Angle = glm::vec4(
+                glm::cos(glm::radians(0.5f * g_LightAngle)),
+                cosf(glm::radians(0.5f * (g_LightAngle - 10.f))), 1.0f, 1.0f);
+          }
+
           glNamedBufferSubData(
               PointLightBufferGroup, 0,
               static_cast<GLsizeiptr>(sizePointLight * it.count()), light);
@@ -116,17 +124,15 @@ void LightModule::InitializeSystem() {
       .each([](flecs::entity self, PointLight& light) {
         ImGui::Begin("LightUI");
         if (ImGui::CollapsingHeader(self.name())) {
-          ImGui::InputFloat("Intensity", &light.intensity,0.1f,10.f);
+          ImGui::InputFloat("Intensity", &light.intensity, 0.1f, 10.f);
           ImGui::Separator();
-          ImGui::InputFloat("PositionX", &light.position.x,0.1f,10.f);
-          ImGui::InputFloat("PositionY", &light.position.y,0.1f,10.f);
-          ImGui::InputFloat("PositionZ", &light.position.z,0.1f,10.f);
+          ImGui::InputFloat("PositionX", &light.position.x, 0.1f, 10.f);
+          ImGui::InputFloat("PositionY", &light.position.y, 0.1f, 10.f);
+          ImGui::InputFloat("PositionZ", &light.position.z, 0.1f, 10.f);
           ImGui::Separator();
-          ImGui::InputFloat("ColorR", &light.color.r,0.1f,10.f);
-          ImGui::InputFloat("ColorG", &light.color.g,0.1f,10.f);
-          ImGui::InputFloat("ColorB", &light.color.b,0.1f,10.f);
-       
-        
+          ImGui::InputFloat("ColorR", &light.color.r, 0.1f, 10.f);
+          ImGui::InputFloat("ColorG", &light.color.g, 0.1f, 10.f);
+          ImGui::InputFloat("ColorB", &light.color.b, 0.1f, 10.f);
         }
         ImGui::End();
       });
@@ -151,9 +157,9 @@ void LightModule::CreateLightBuffers() {
   glBufferData(GL_SHADER_STORAGE_BUFFER, static_cast<GLsizeiptr>(sizeof(SpotLight) * poolSize), nullptr,GL_DYNAMIC_DRAW);
 
 
-glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::ePointLight,PointLightBufferGroup);
-glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::eDirectionLight,DirectionLightBufferGroup);
-glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::eSpotLight, SpotLightBufferGroup);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,  Uniform::BindingLocation::ePointLight,      PointLightBufferGroup);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,  Uniform::BindingLocation::eDirectionLight,  DirectionLightBufferGroup);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,  Uniform::BindingLocation::eSpotLight,       SpotLightBufferGroup);
   // clang-format on
   Logger::get<LightModule>()->debug(
       "Create Light Buffers, PointLight:{0} , DirectionLight:{1} , "

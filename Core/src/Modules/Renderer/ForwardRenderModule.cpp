@@ -26,18 +26,14 @@ void ForwardRenderSystemIter(flecs::iter& it, ForwardRenderComp* render,
   auto self = it.entity(0);
 
   glUseProgram(it.entity(0).get<Program>()->handle);
-
-  glBindTextures(0, 1, &it.entity(0).get<TextureHandle>()->handle);
+  
+  glBindTextureUnit(0, it.entity(0).get<TextureHandle>()->handle);
   
   
   
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::eMatrices, group->groupedHandle);
   glNamedBufferSubData(group->groupedHandle, 0, sizeof(glm::mat4) * it.count(),self.get<Transform>());
-  
-  
-  for (auto& idx : it) {
-    meshes[idx].DrawInstance(render[idx].drawType, it.count());
-  }
+  meshes[0].DrawInstance(render[0].drawType, it.count());
 }
 
 ForwardRenderModule::ForwardRenderModule(world& ecs) {

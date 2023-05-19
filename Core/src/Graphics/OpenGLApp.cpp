@@ -6,8 +6,12 @@
 #include <glfw/glfw3.h>
 
 #include "Logger.hpp"
-
+#include <iostream>
 #define CAST(ptr) static_cast<GLFWwindow *>(ptr)
+
+//TODO: lol
+// this object don't need to continue to develop, in Experimental\src\Module\GLFWwindowModule.cpp has a better ways to merge it into the engine.
+
 
 void message_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
                       GLsizei length, GLchar const *message,
@@ -77,7 +81,7 @@ void initDebug() {
   glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE,
                         GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr, GL_FALSE);
 };
-#include <iostream>
+
 bool OpenGLApp::Initialize() {
   if (!glfwInit()) {
     Logger::get<OpenGLApp>()->error("Failed to initialize GLFW");
