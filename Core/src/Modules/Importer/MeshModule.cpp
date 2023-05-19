@@ -19,7 +19,8 @@
 #include "MeshComp.hpp"
 #include "Position.hpp"
 #include "RenderComp.hpp"
-
+#include <imgui.h>
+#include <Phases.hpp>
 COMP_BGN(Mesh)
 void Mesh::DrawElement(unsigned int mode) const {
   glBindVertexArray(vao);
@@ -175,6 +176,31 @@ void RegisterComponent(world& ecs) {
       .member<Handle>("Indirect");
 }
 
+
+void MeshUI(flecs::iter& it , size_t i, Mesh& mesh,Position& pos, Rotation& rot, Scale& scale){
+  ImGui::Begin("Mesh");
+//  for(auto idx : it ){
+//
+//
+//  }
+  auto target = it.entity(i);
+  if(ImGui::CollapsingHeader(target.name())){    ImGui::Text("Mesh %d",i);
+    ImGui::InputFloat("Position X",&pos.value.x,0.1,10);
+    ImGui::InputFloat("Position Y",&pos.value.y,0.1,10);
+    ImGui::InputFloat("Position Z",&pos.value.z,0.1,10);
+    ImGui::Separator();
+    ImGui::InputFloat("Rotation X",&rot.value.x,1,10);
+    ImGui::InputFloat("Rotation Y",&rot.value.y,1,10);
+    ImGui::InputFloat("Rotation Z",&rot.value.z,1,10);
+    ImGui::InputFloat("Angle ",&rot.angle,1,10);
+    ImGui::Separator();
+    ImGui::InputFloat("Scale X",&scale.value.x,1,10);
+    ImGui::InputFloat("Scale Y",&scale.value.y,1,10);
+    ImGui::InputFloat("Scale Z",&scale.value.z,1,10);
+  }
+  ImGui::End();
+}
+
 MeshModule::MeshModule(world& ecs) {
   ecs.module<MeshModule>();
   pWorld_ = &ecs;
@@ -205,6 +231,11 @@ MeshModule::MeshModule(world& ecs) {
                 }*/
         self.is_a(MeshPrefab);
       });
+  
+  
+  ecs.system<Mesh,Position,Rotation,Scale>("MeshUI")
+      .kind(Phase::ImGuiRender)
+    .each(MeshUI);
 }
 
 MOD_END(MeshModule)

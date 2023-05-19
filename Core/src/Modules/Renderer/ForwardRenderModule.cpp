@@ -5,6 +5,7 @@
 
 #include <Phases.hpp>
 
+#include "GlobalValue.hpp"
 #include "Job.hpp"
 #include "Logger.hpp"
 #include "MeshComp.hpp"
@@ -16,17 +17,29 @@
 MOD_BGN(ForwardRenderModule)
 using namespace Component;
 
-void ForwardRenderSystemIter(flecs::iter& it, ForwardRenderComp* render) {
+void ForwardRenderSystemIter(flecs::iter& it, ForwardRenderComp* render,
+                             Mesh* meshes) {
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
 
-  const auto texture = it.entity(0).get<TextureHandle>();
-  const auto mesh = it.entity(0).get<Mesh>();
+  auto group = it.entity(0).get<TransformGroup>();
+  auto self = it.entity(0);
 
   glUseProgram(it.entity(0).get<Program>()->handle);
-  glBindTextures(0, 1, &texture->handle);
-  mesh->DrawInstance(GL_TRIANGLES, it.count());
+
+  glBindTextures(0, 1, &it.entity(0).get<TextureHandle>()->handle);
+  
+  
+  
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::eMatrices, group->groupedHandle);
+  glNamedBufferSubData(group->groupedHandle, 0, sizeof(glm::mat4) * it.count(),self.get<Transform>());
+  
+  
+  for (auto& idx : it) {
+    meshes[idx].DrawInstance(render[idx].drawType, it.count());
+  }
 }
+
 ForwardRenderModule::ForwardRenderModule(world& ecs) {
   ecs.module<ForwardRenderModule>();
   pWorld_ = &ecs;
@@ -34,7 +47,7 @@ ForwardRenderModule::ForwardRenderModule(world& ecs) {
   CreateDefaultProgram();
   LoadComponent();
   //  [this] { this->LoadComponent(); };
-  ecs.system<ForwardRenderComp>("ForwardRenderSystem")
+  ecs.system<ForwardRenderComp, Mesh>("ForwardRenderSystem")
       .kind(Phase::RenderStage)
       .iter(ForwardRenderSystemIter);
   /*//off screen render system
@@ -50,7 +63,7 @@ void ForwardRenderModule::CreateDefaultProgram() {
                             R"(Shaders\ForwardRender\Default.vert)",
                             R"(Shaders\ForwardRender\Default.frag)",
                         });  // this can be use as shader hot reload module
-  
+
   auto program = defaultProgram_.get<Program>();
   if (program->handle == 0) {
     Logger::get<ForwardRenderModule>()->critical(

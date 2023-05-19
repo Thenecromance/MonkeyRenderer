@@ -82,10 +82,39 @@ void MeshTest(world &ecs) {
           .set<MeshFile>({.path = R"(data\rubber_duck\scene.gltf)"})
           .set<Texture>(
               {.path = R"(data\rubber_duck\textures\Duck_baseColor.png)"})
-          .add<Transform>()
+          .add<Transform>();
+        
       /*  .add<DefferedRenderComp>()
         .disable<ForwardRenderComp>()*/
       ;
+  
+  ecs.entity("Plane")
+      .set<MeshData>({
+          .Indices = {0, 1, 2, 2, 3, 0 },
+          .Vertex ={
+              -2, -2, 0, 0,0,1,0,0,
+              -2, +2, 0, 0,0,1, 0,1,
+              +2, +2, 0, 0,0,1, 1,1,
+              +2, -2, 0, 0,0,1, 1,0
+          }
+         
+      })
+      .set<Texture>({"data//wall.jpg"})
+      .add<Transform>()
+          .set<Position>({
+              .value= {
+                  1.0f,1.0f,0.0f
+              }
+          })
+          .set<Rotation>({
+              .value = {
+                  0.0f,1.0f,1.0f
+              }
+          })
+          .set<Scale>({
+              .value ={10.0f,10.0f,10.0f}
+          });
+      
 
   // on my hard ware (RTX 2080, with 9700k) , the fps is 8~10 when direct render
   // 10M duck.
@@ -127,7 +156,7 @@ int main() {
       .Import<Module::BaseRender>()                // Render sections
       .Import<Module::ForwardRenderModule>()       // Render sections
       .Import<Module::DefferedRender>()            // Render sections
-      .Import<Module::GridModule>()                // grid
+//      .Import<Module::GridModule>()                // grid
       .Import<Module::ImGuiRenderer>()             // ImGuiRenderer
       .Import<Module::AntiAliasingConfigModule>()  // AA control
       ;

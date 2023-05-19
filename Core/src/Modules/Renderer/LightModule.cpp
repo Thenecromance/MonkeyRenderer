@@ -3,6 +3,7 @@
 #include <flecs.h>
 #include <glad/glad.h>
 #include <imgui.h>
+
 #include <glm/ext.hpp>
 
 #include "GlobalValue.hpp"
@@ -14,10 +15,6 @@
 
 MOD_BGN(LightModule)
 using namespace Monkey::Component;
-
-
-
-
 
 LightModule::LightModule(flecs::world& ecs) {
   ecs.module<LightModule>();
@@ -83,27 +80,26 @@ void LightModule::InitializeSystem() {
     pWorld_->system<PointLight>("PointLightOnUpdate")
         .kind(Phase::LightBinding)
         .iter([&](flecs::iter& it, PointLight* light) {
-          for(auto row:it ){
-            light[row].position.z += .1f;
-            if(light[row].position.z > 100.f){
-              light[row].position.z = -20.f;
-            }
-          }
-          glNamedBufferSubData(PointLightBufferGroup, 0,static_cast<GLsizeiptr>(sizePointLight * it.count()), light);
+          glNamedBufferSubData(
+              PointLightBufferGroup, 0,
+              static_cast<GLsizeiptr>(sizePointLight * it.count()), light);
         });
 
     pWorld_->system<DirectionalLight>("DirectionalLightOnUpdate")
         .kind(Phase::LightBinding)
         .iter([&](flecs::iter& it, DirectionalLight* light) {
-          glNamedBufferSubData( PointLightBufferGroup, 0,static_cast<GLsizeiptr>(sizeDirectionalLight * it.count()),light);
-         
+          glNamedBufferSubData(
+              PointLightBufferGroup, 0,
+              static_cast<GLsizeiptr>(sizeDirectionalLight * it.count()),
+              light);
         });
 
     pWorld_->system<SpotLight>("SpotLightOnUpdate")
         .kind(Phase::LightBinding)
         .iter([&](flecs::iter& it, SpotLight* light) {
-          glNamedBufferSubData( PointLightBufferGroup, 0,static_cast<GLsizeiptr>(sizeSpotLight * it.count()), light);
-         
+          glNamedBufferSubData(
+              PointLightBufferGroup, 0,
+              static_cast<GLsizeiptr>(sizeSpotLight * it.count()), light);
         });
   }
   // just sync to perframe data , this info will be upload to gpu later
@@ -115,6 +111,25 @@ void LightModule::InitializeSystem() {
         data.spot_light_count = spot_light_count_;
       });
 
+  pWorld_->system<PointLight>("PointLightUI")
+      .kind(Phase::ImGuiRender)
+      .each([](flecs::entity self, PointLight& light) {
+        ImGui::Begin("LightUI");
+        if (ImGui::CollapsingHeader(self.name())) {
+          ImGui::InputFloat("Intensity", &light.intensity,0.1f,10.f);
+          ImGui::Separator();
+          ImGui::InputFloat("PositionX", &light.position.x,0.1f,10.f);
+          ImGui::InputFloat("PositionY", &light.position.y,0.1f,10.f);
+          ImGui::InputFloat("PositionZ", &light.position.z,0.1f,10.f);
+          ImGui::Separator();
+          ImGui::InputFloat("ColorR", &light.color.r,0.1f,10.f);
+          ImGui::InputFloat("ColorG", &light.color.g,0.1f,10.f);
+          ImGui::InputFloat("ColorB", &light.color.b,0.1f,10.f);
+       
+        
+        }
+        ImGui::End();
+      });
 }
 
 void LightModule::CreateLightBuffers() {

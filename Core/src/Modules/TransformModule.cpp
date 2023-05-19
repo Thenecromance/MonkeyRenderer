@@ -41,8 +41,8 @@ void TransformIter(flecs::iter& it, Transform* transform, Position* position_,
     // clang-format on
   }
 
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::eMatrices, group->groupedHandle);
-  glNamedBufferSubData(group->groupedHandle, 0, sizeof(glm::mat4) * it.count(),self.get<Transform>());
+//  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::eMatrices, group->groupedHandle);
+//  glNamedBufferSubData(group->groupedHandle, 0, sizeof(glm::mat4) * it.count(),self.get<Transform>());
 }
 
 TransformModule::TransformModule(world& ecs) {

@@ -21,6 +21,7 @@ class ShadowMapModule {
  private:
   flecs::world* pWorld_{};
   flecs::entity shadowMapEntity_{};
+  flecs::entity shadowRenderPass_{};
   unsigned int PointLightGroup{};
 };
 
