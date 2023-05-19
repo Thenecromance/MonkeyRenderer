@@ -52,7 +52,7 @@ void ShaderOnSet(flecs::iter& it, size_t i, Shader& shader) {
   if (result <= 1) {
     return;
   }
-  Logger::get<ProgramModule>()->trace("{}", self.name());
+  std::string msg;
   Handle handle = glCreateProgram();
   if (handle == 0) {
     assert(false && "ProgramWorker::Compile: glCreateProgram failed");
@@ -60,43 +60,48 @@ void ShaderOnSet(flecs::iter& it, size_t i, Shader& shader) {
   std::vector<Handle> handles;
   if (shader.vertexHandle != 0) {
     glAttachShader(handle, shader.vertexHandle);
-    Logger::get<ProgramModule>()->trace("Linked vertexHandle:{}",
-                                        shader.vertexHandle);
-
+    //    Logger::get<ProgramModule>()->trace("Linked vertexHandle:{}",
+    //                                        shader.vertexHandle);
+    msg += "Linked vertexHandle:" + std::to_string(shader.vertexHandle)+"\n";
     handles.push_back(shader.vertexHandle);
   }
   if (shader.fragmentHandle != 0) {
     glAttachShader(handle, shader.fragmentHandle);
     handles.push_back(shader.fragmentHandle);
-    Logger::get<ProgramModule>()->trace("Linked fragmentHandle:{}",
-                                        shader.fragmentHandle);
+    //    Logger::get<ProgramModule>()->trace("Linked fragmentHandle:{}",
+    //                                        shader.fragmentHandle);
+    msg += "Linked fragmentHandle:" + std::to_string(shader.fragmentHandle)+"\n";
   }
   if (shader.geometryHandle != 0) {
     glAttachShader(handle, shader.geometryHandle);
     handles.push_back(shader.geometryHandle);
-    Logger::get<ProgramModule>()->trace("Linked geometryHandle:{}",
-                                        shader.geometryHandle);
+//    Logger::get<ProgramModule>()->trace("Linked geometryHandle:{}",
+//                                        shader.geometryHandle);
+    msg += "Linked geometryHandle:" + std::to_string(shader.geometryHandle)+"\n";
   }
   if (shader.tessellationControlHandle != 0) {
     glAttachShader(handle, shader.tessellationControlHandle);
     handles.push_back(shader.tessellationControlHandle);
-    Logger::get<ProgramModule>()->trace("Linked tessellationControlHandle:{}",
-                                        shader.tessellationControlHandle);
+//    Logger::get<ProgramModule>()->trace("Linked tessellationControlHandle:{}",
+//                                        shader.tessellationControlHandle);
+    msg += "Linked tessellationEvaluationHandle:" + std::to_string(shader.tessellationEvaluationHandle)+"\n";
   }
   if (shader.tessellationEvaluationHandle != 0) {
     glAttachShader(handle, shader.tessellationEvaluationHandle);
     handles.push_back(shader.tessellationEvaluationHandle);
-    Logger::get<ProgramModule>()->trace(
-        "Linked tessellationEvaluationHandle:{}",
-        shader.tessellationEvaluationHandle);
+//    Logger::get<ProgramModule>()->trace(
+//        "Linked tessellationEvaluationHandle:{}",
+//        shader.tessellationEvaluationHandle);
+    msg += "Linked tessellationEvaluationHandle:" + std::to_string(shader.tessellationEvaluationHandle)+"\n";
   }
   if (shader.computeHandle != 0) {
     glAttachShader(handle, shader.computeHandle);
     handles.push_back(shader.computeHandle);
-    Logger::get<ProgramModule>()->trace("Linked computeHandle:{}",
-                                        shader.computeHandle);
+//    Logger::get<ProgramModule>()->trace("Linked computeHandle:{}",
+//                                        shader.computeHandle);
+    msg += "Linked computeHandle:" + std::to_string(shader.computeHandle) +"\n";
   }
-
+  Logger::get<ProgramModule>()->trace("{} ReCompile Program :\n{}", self.name(),msg);
   glLinkProgram(handle);
   if (!CheckLinkStatus(handle)) {
     glDeleteProgram(handle);
