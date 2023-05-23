@@ -62,9 +62,6 @@ void OnCameraUpdate(flecs::entity e, CameraComponent &cameraComponent,
     const glm::vec2 delta =
         mousePos_ - cameraComponent.mousePos;  // new - old position
 
-    /*			if (glm::zero<glm::vec2>() == delta)
-                                                    return;*/
-
     const glm::quat deltaQuat =
         glm::quat(glm::vec3(-camSetting.mouseSpeed_ * delta.y,
                             camSetting.mouseSpeed_ * delta.x, 0.0f));
@@ -170,6 +167,7 @@ void PerFrameDataInit(PerFrameDataComp &comp) {
   glBindBufferRange(GL_UNIFORM_BUFFER, Uniform::BindingLocation::ePerFrameData,
                     comp.buffer, 0, sizePerFrameDataComp - sizeof(Handle));
 }
+
 void PerFrameDataUpdate(PerFrameDataComp &comp,
                         const CameraComponent &camComp) {
   if (camComp.isActiveCamera == false) return;
@@ -178,8 +176,8 @@ void PerFrameDataUpdate(PerFrameDataComp &comp,
   OpenGLApp::GetInstance()->GetWindowSize(width, height);
 
   comp.view = getViewMatrix(camComp.v3Position.value, camComp.Orientation);
-  comp.projection =
-      glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
+
+  comp.projection = glm::perspective(45.0f, (float)width / (float)height,camComp.fNear, camComp.fFar);
   comp.cameraPos = glm::vec4(camComp.v3Position.value, 1.0f);
 
   glNamedBufferSubData(comp.buffer, 0, sizePerFrameDataComp - sizeof(Handle),

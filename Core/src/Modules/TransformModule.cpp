@@ -30,19 +30,26 @@ void TransformIter(flecs::iter& it, Transform* transform, Position* position_,
 
   auto group = self.get<TransformGroup>();
 
-  for (auto row : it) {
+  for (auto idx : it) {
     // clang-format off
-  float angle_ = rotation_[row].angle;
-  const glm::mat4 scale = glm::scale(glm::mat4(1.0f), scale_[row].value);
-  const glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), rotation_[row].value);
-  const glm::mat4 pos = glm::translate(glm::mat4(1.0f), position_[row].value);
-  const glm::mat4 m = glm::rotate(scale * rotation * pos, angle_, glm::vec3(0.0f, 0.0f, 1.0f));
-  transform[row].value = m;
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::scale(model, scale_[idx].value);
+
+    model = glm::rotate(model, glm::radians(rotation_[idx].value.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    model = glm::rotate(model, glm::radians(rotation_[idx].value.y), glm::vec3(0.0f, 1.0f, 0.0f)); // y is not correct
+    model = glm::rotate(model, glm::radians(rotation_[idx].value.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    model = glm::translate(model, position_[idx].value);  // model matrices transform
+
+
+    model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+
+    transform[idx].value =model;
     // clang-format on
   }
 
-//  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::eMatrices, group->groupedHandle);
-//  glNamedBufferSubData(group->groupedHandle, 0, sizeof(glm::mat4) * it.count(),self.get<Transform>());
+  //  glBindBufferBase(GL_SHADER_STORAGE_BUFFER,Uniform::BindingLocation::eMatrices,
+  //  group->groupedHandle); glNamedBufferSubData(group->groupedHandle, 0,
+  //  sizeof(glm::mat4) * it.count(),self.get<Transform>());
 }
 
 TransformModule::TransformModule(world& ecs) {

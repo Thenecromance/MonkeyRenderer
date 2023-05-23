@@ -36,3 +36,5 @@ imgui.ini
 /bin/data/glTF-Sample-Models/
 /bin/
 /ReadMe/
+/build/SandBox/
+/build/SandBox/Debug/

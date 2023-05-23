@@ -83,9 +83,7 @@ void LightModule::InitializeSystem() {
         .iter([&](flecs::iter& it, PointLight* light) {
           // calculate the light angle params
           for (auto& idx : it) {
-            light[idx].Angle = glm::vec4(
-                glm::cos(glm::radians(0.5f * g_LightAngle)),
-                cosf(glm::radians(0.5f * (g_LightAngle - 10.f))), 1.0f, 1.0f);
+            light[idx].Angle = glm::vec4(glm::cos(glm::radians(0.5f * g_LightAngle)),cosf(glm::radians(0.5f * (g_LightAngle - 10.f))), 1.0f, 1.0f);
           }
 
           glNamedBufferSubData(

@@ -20,6 +20,8 @@ struct CameraComponent {
   glm::vec2 mousePos = glm::vec2(0);
   glm::vec3 moveSpeed = glm::vec3(0.0f);
   bool isActiveCamera = false;
+  float fNear = 1.0f;
+  float fFar = 1000000.0f ;
 };
 SIZE_OF(CameraComponent)
 

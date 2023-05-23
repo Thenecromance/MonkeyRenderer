@@ -59,6 +59,10 @@ entity shadow_;
 //  so I just hard code the Component::ShadowMap to a single entity which is
 //  shadowMapEntity_. when combine pass just temp to test the shadow map mainly
 //  logic is working as expected.
+
+// TODO:*IMPORTANT* another propblem is so far this shader's display just like a spotlight,
+// need to added more texture to build a texture cube, to give a more realistic
+// shadow map display.
 ShadowMapModule::ShadowMapModule(world& ecs) {
   ecs.module<ShadowMapModule>();
   pWorld_ = &ecs;
@@ -89,8 +93,7 @@ void ShadowMapModule::HookOtherComponents() {
                                       // know the mesh need to be rendered by
                                       // shadowmap
               .set<Component::Program>(
-                  {shadowRenderPass_.get<Component::Program>()->handle})
-              ;
+                  {shadowRenderPass_.get<Component::Program>()->handle});
         }
       });
 
@@ -240,7 +243,7 @@ void CalculateMatrices(Component::PointLight& light,
   const glm::mat4 lightProj =
       glm::perspective(glm::radians(90.0f), 1.0f, 1.0f, 2000.f);
   const glm::mat4 lightView =
-      glm::lookAt(glm::vec3(light.position), glm::vec3(0) , glm::vec3(0, 1, 0));
+      glm::lookAt(glm::vec3(light.position), glm::vec3(0), glm::vec3(0, 1, 0));
   transform.projection = lightProj;
   transform.view = lightView;
 }
